@@ -1,4 +1,8 @@
-** IMPORTANT NOTE FOR DATA IMPORT**  All CSV’s must contain a column header titled “hole_id”. This is what populates your selection boxes. Any desurveyed data must contain columns “x”, “y” and “z” matching exactly, no uppercase.
+
+
+HELP_TEXT = """
+
+*** IMPORTANT NOTE FOR DATA IMPORT**  All CSV’s must contain a column header titled “hole_id”. This is what populates your selection boxes. Any desurveyed data must contain columns “x”, “y” and “z” matching exactly, no uppercase.
 
 This application is designed to import, process, and visualize geological drill hole data. The application uses a graphical user interface built with PyQt5, a Python binding for the Qt application framework.
 
@@ -144,4 +148,4 @@ Both plots allow you to select as many holes as you would like from the structur
 	
 STEREONET SMALL CIRCLES FOR UNORIENTED CORE
 
-Assign a drill hole strike and drill hole dip column to your dataset where each row is a calculated  strike and dip based on your surrey data. Using your TCA (to core axis) measurements on your structures you can be plotted as small circles on a stereonet. 
+Assign a drill hole strike and drill hole dip column to your dataset where each row is a calculated  strike and dip based on your surrey data. Using your TCA (to core axis) measurements on your structures you can be plotted as small circles on a stereonet."""

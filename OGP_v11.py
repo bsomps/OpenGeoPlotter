@@ -76,8 +76,8 @@ from pykrige.ok import OrdinaryKriging
 from scipy.interpolate import Rbf
 from scipy.spatial import ConvexHull
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QComboBox, QPushButton, QColorDialog, QLabel, QSpinBox, QListView, QScrollArea, QWidget, QDoubleSpinBox, QLineEdit, QGroupBox, QHBoxLayout, QGridLayout, QFileDialog, QTableView, QApplication, QSlider, QCheckBox, QTextEdit
-
-
+from PyQt5.QtWidgets import QProgressDialog
+from OGP_help import HELP_TEXT
 
 
 
@@ -686,6 +686,7 @@ class CrossSection(QDialog): # Cross section window
         self.overlay_image_state = {'x': 0, 'y': 0, 'width': 0, 'height': 0}
         self.use_user_defined_grid = False
         self.filtered_grid_points = None
+        self.y_axis_scale_factor = 1
         
         
 
@@ -720,6 +721,17 @@ class CrossSection(QDialog): # Cross section window
         self.topo_line_settings_button = QPushButton("Topo Line Settings", self)
         self.topo_line_settings_button.clicked.connect(self.on_topo_line_settings_clicked)
         button_layout.addWidget(self.topo_line_settings_button)
+        
+        # Add 'Y-axis Scale Factor' label and input
+        y_axis_scale_label = QLabel("Vertical Exaggeration")
+        button_layout.addWidget(y_axis_scale_label)
+
+        # QLineEdit for scale factor input
+        self.y_axis_scale_factor_input = QLineEdit(self)
+        self.y_axis_scale_factor_input.setPlaceholderText("Enter vertical exaggeration (e.g., 2)")
+        button_layout.addWidget(self.y_axis_scale_factor_input)
+
+        
 
         # Add hover tool
         hover_tool_btn = QPushButton("Hover Tool")
@@ -779,6 +791,25 @@ class CrossSection(QDialog): # Cross section window
         # Add the attribute list
         button_layout.addWidget(self.attribute_list_view)
         
+        
+        # Add a label for the azimuth control
+        azimuth_label = QLabel("Change Azimuth")
+        azimuth_label.setAlignment(Qt.AlignCenter)  # Center align the text
+        button_layout.addWidget(azimuth_label)
+        
+        # Set the font to bold
+        font = azimuth_label.font()
+        font.setBold(True)
+        azimuth_label.setFont(font)
+
+        # Add QSpinBox for azimuth
+        self.azimuth_spin_box = QSpinBox(self)
+        self.azimuth_spin_box.setRange(0, 360)  # Assuming azimuth range is 0-360 degrees
+        # Set the value of azimuth spin box as an integer
+        self.azimuth_spin_box.setValue(int(self.azimuth))
+        self.azimuth_spin_box.valueChanged.connect(self.on_azimuth_changed)
+        button_layout.addWidget(self.azimuth_spin_box)
+        
         # Add "Redraw Plot" button
         self.redraw_plot_button = QPushButton("Redraw Plot", self)
         self.redraw_plot_button.clicked.connect(self.on_redraw_button_clicked)
@@ -786,7 +817,8 @@ class CrossSection(QDialog): # Cross section window
         
         # Add a stretch to push the buttons to the top
         button_layout.addStretch(1)
-
+        
+       
         # Add the QVBoxLayout to the QHBoxLayout
         self.layout.addLayout(button_layout, stretch=1)
 
@@ -807,6 +839,21 @@ class CrossSection(QDialog): # Cross section window
 
         self.plot()  # Create the plot
         self.setWindowTitle("Cross Section Visualizer")
+        
+    def set_y_axis_scale_factor(self):
+        try:
+            # Get scale factor from input and store it in the class variable
+            self.y_axis_scale_factor = float(self.y_axis_scale_factor_input.text())
+
+            # Check if scale factor is positive
+            if self.y_axis_scale_factor <= 0:
+                raise ValueError("Scale factor must be positive")
+
+            self.plot()
+            
+        except ValueError as e:
+            QMessageBox.warning(self, "Input Error", str(e))
+            self.y_axis_scale_factor = 1  # Reset to default if there's an error
         
     def on_save_to_csv_clicked(self):
         # Open a file dialog to choose where to save the CSV
@@ -971,7 +1018,8 @@ class CrossSection(QDialog): # Cross section window
             self.generate_contours_flag = True
             self.plot()  # Replot with contours
         
-
+    def on_azimuth_changed(self, value):
+        self.azimuth = float(value)
 
     def setup_attribute_list_view(self):
         self.attribute_list_view = QListView(self)
@@ -991,16 +1039,44 @@ class CrossSection(QDialog): # Cross section window
             self.attribute_column = item.text()
             
     def on_redraw_button_clicked(self):
-        if self.attribute_column:
-            self.update_plot(self.attribute_column)
+        
+        # Create and configure the progress dialog
+        self.progress_dialog = QProgressDialog("Redrawing plot...", "Cancel", 0, 0, self)
+        self.progress_dialog.setModal(True)  # Make the dialog modal
+        self.progress_dialog.setWindowTitle("Redrawing plot...")
+        self.progress_dialog.setCancelButton(None)  # Optionally remove the cancel button
+        self.progress_dialog.show()
+
+        # Update the plot
+        self.update_plot(self.attribute_column)
 
     def update_plot(self, attribute_column):
         self.attribute_column = attribute_column
         self.generate_contours_flag = False
         self.bar_column = None
-        self.plot()  
+
+        
+        # Check if the y-axis scale factor input is empty
+        if not self.y_axis_scale_factor_input.text().strip():
+            # If the input is empty, assume scaling factor is 1
+            self.y_axis_scale_factor = 1
+        else:
+            # If there is an input, use it as the scaling factor
+            try:
+                self.y_axis_scale_factor = float(self.y_axis_scale_factor_input.text())
+                if self.y_axis_scale_factor <= 0:
+                    raise ValueError("Scale factor must be positive")
+            except ValueError:
+                # Handle invalid input or reset to default
+                self.y_axis_scale_factor = 1
+                QMessageBox.warning(self, "Input Error", "Invalid Y-axis scale factor. Resetting to 1.")
+
+        self.plot()  # Redraw the plot 
 
         self.redraw_image()  # Redraw the overlay image after updating the plot
+
+        # Close the progress dialog
+        self.progress_dialog.close()
   
 
         
@@ -1864,7 +1940,12 @@ class CrossSection(QDialog): # Cross section window
             ax.set_xlabel('Distance along cross-section line (m)', labelpad=20)
             ax.set_ylabel('Elevation / Depth (m)', labelpad=20)
             ax.tick_params(axis='x', labelsize=8)
-            ax.set_aspect('equal')
+
+            # Apply the y-axis scale factor
+            if self.y_axis_scale_factor != 1:
+                ax.set_aspect(self.y_axis_scale_factor)
+            else:
+                ax.set_aspect('equal')
 
             # Calculate and set dynamic ticks using distance
             tick_interval = self.calculate_tick_interval(min_x_with_buffer, max_x_with_buffer)
@@ -1873,7 +1954,11 @@ class CrossSection(QDialog): # Cross section window
             tick_labels = [f"{int(tick + offset)}" for tick in tick_values]  # Adjust for offset
             ax.set_xticks(tick_values)
             ax.set_xticklabels(tick_labels)
-            ax.set_aspect('equal')
+            # Apply the y-axis scale factor
+            if self.y_axis_scale_factor != 1:
+                ax.set_aspect(self.y_axis_scale_factor) 
+            else:
+                ax.set_aspect('equal')
 
             # colors for sky
             colors = ["white", self.sky_color]
@@ -1928,7 +2013,11 @@ class CrossSection(QDialog): # Cross section window
                 ax.imshow(gradient, aspect='auto', cmap=cmap_bg, extent=[self.min_x_cross - self.buffer_x, self.max_x_cross + self.buffer_x, self.max_z, self.max_z + self.buffer_yz], origin='lower', alpha=alpha_level)
                 ax.axhline(self.max_z, color='k', linestyle='--', alpha=alpha_level)
             
-            ax.set_aspect('equal')
+            # Apply the y-axis scale factor
+            if self.y_axis_scale_factor != 1:
+                ax.set_aspect(self.y_axis_scale_factor)
+            else:
+                ax.set_aspect('equal')
 
         # Set up the titles
         if self.is_plan_view:
@@ -1959,6 +2048,15 @@ class CrossSection(QDialog): # Cross section window
                 for tick in ax.get_yticks():
                     if tick < self.max_z:
                         ax.plot([ax.get_xlim()[0], ax.get_xlim()[1]], [tick, tick], linestyle='-', linewidth=0.5, alpha=0.3, color='gray', zorder=-1)
+                        
+        # Check if the scale factor is not zero (and not one, since one means no scaling)
+        if self.y_axis_scale_factor != 0 and self.y_axis_scale_factor != 1:
+            annotation_text = f"Vertical Exaggeration: {self.y_axis_scale_factor}x"
+            # Place the annotation on the plot without a bounding box
+            # Adjust the x and y coordinates to place it in the lower left corner
+            # You may need to adjust these values based on your specific plot layout
+            ax.annotate(annotation_text, xy=(0.02, 0.02), xycoords='axes fraction',
+                        fontsize=7, style='italic')
                 
         self.canvas.draw()
         self.canvases.append(self.canvas)
@@ -2190,12 +2288,29 @@ class ScatterPlotWindow(QMainWindow): # Scatter plot window
 
         self.figure = Figure(figsize=(10, 10)) 
         self.canvas = FigureCanvas(self.figure)
-        self.setCentralWidget(self.canvas)
-        self.save_button = QtWidgets.QPushButton(self)
-        self.save_button.setText("Save plot")
+
+        # Create a central widget
+        central_widget = QtWidgets.QWidget()
+        self.setCentralWidget(central_widget)
+
+        # Set the layout for the central widget
+        layout = QtWidgets.QVBoxLayout(central_widget)
+
+        # Create and add the toolbar
+        self.toolbar = NavigationToolbar(self.canvas, self)
+        layout.addWidget(self.toolbar)
+
+        # Create and add the save button
+        self.save_button = QtWidgets.QPushButton("Save plot")
         self.save_button.clicked.connect(self.save_plot)
+        layout.addWidget(self.save_button)
+
+        # Add canvas to the layout
+        layout.addWidget(self.canvas)
 
         self.data = data
+        self.setWindowTitle("XY Scatter Plot")
+        
 
     def plot_scatter(self, x, y, column, color_ramp=None):
         ax = self.figure.add_subplot(111)
@@ -2266,6 +2381,8 @@ class ScatterPlotDialog(QDialog): # Window for scatter plot inputs
         self.selected_hole_ids = selected_hole_ids
 
         self.layout = QVBoxLayout(self)
+        self.setWindowTitle("XY Scatter Plot")
+        
 
         self.xaxis_combo = QComboBox()
         self.xaxis_combo.addItems(self.data.columns)
@@ -3839,46 +3956,46 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         Combine the open lithology and geochemistry plots into a single window.
         """
 
-        # 1. Check if there are any open windows to merge
+        # Check if there are any open windows to merge
         if not self.plot_windows and not self.geochem_plot_windows:
             QMessageBox.warning(self, "No Open Plots", "Please open some plots to merge.")
             return
 
-        # 2. Check if more than one lithology plot is open
+        # Check if more than one lithology plot is open
         if len(self.plot_windows) > 1:
             QMessageBox.warning(self, "Multiple Lithology Plots", "Please only have one lithology plot open.")
             return
             
-        # 3. Check if more than one lithology plot is open
+        # Check if more than one lithology plot is open
         if len(self.plot_windows) < 1:
             QMessageBox.warning(self, "No Lithology Plots", "Please have one lithology plot open.")
             return
 
-        # 4. Check if the hole_id from the lithology plot doesn't match the hole_id from the geochemistry plots
+        # Check if the hole_id from the lithology plot doesn't match the hole_id from the geochemistry plots
         lith_hole_id = self.plot_windows[0].hole_ids[0]
         for geochem_plot in self.geochem_plot_windows.values():
             if geochem_plot.hole_id != lith_hole_id:
                 QMessageBox.warning(self, "Mismatched Hole IDs", "Ensure the hole_id matches between lithology and geochemistry plots.")
                 return
 
-        # 5. Check if multiple hole_ids have been selected for the geochemistry plots
+        # Check if multiple hole_ids have been selected for the geochemistry plots
         if len(self.geochem_plot_windows) > 1:
             unique_hole_ids = set([plot.hole_id for plot in self.geochem_plot_windows.values()])
             if len(unique_hole_ids) > 1:
                 QMessageBox.warning(self, "Multiple Hole IDs", "Please select only one hole_id for geochemistry plots.")
                 return
 
-        # 6. Check if only one type of plot is open
+        # Check if only one type of plot is open
         if not self.plot_windows or not self.geochem_plot_windows:
             QMessageBox.warning(self, "Insufficient Plots", "Please open at least one lithology and one geochemistry plot.")
             return
 
-        # 7. Check if the previously created merged plot window is still open
+        # Check if the previously created merged plot window is still open
         if self.combined_plot_window:
             QMessageBox.warning(self, "Previous Merged Plot", "Please close the previously created merged plot window first.")
             return
 
-        # 8. Check if more than 7 geochemistry plots are open
+        # Check if more than 7 geochemistry plots are open
         if len(self.geochem_plot_windows) > 7:
             QMessageBox.warning(self, "Too Many Geochemistry Plots", "Please open no more than 7 geochemistry plots.")
             return
@@ -3894,7 +4011,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
 
 
         
-    def updateLithDepthUnit(self, value): 
+    def updateLithDepthUnit(self, value): # Change from ft to meters
         if value == 0:
             self.lith_depth_unit = "feet"
             self.slider_state = "ft"
@@ -3949,8 +4066,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                 line_width_text = plot_settings_dialog.line_edit_line_width.text()
                 self.line_width = float(line_width_text) if line_width_text else 4.0  # default value
                 self.line_width = max(1.0, min(self.line_width, 5.0))  # Limit between 1 and 5
-                print(f"Updated line_width: {self.line_width}") 
-                print(f"Line Width inside on_plot_settings_clicked: {self.line_width}")
+              
                 self.selected_hole_ids_for_labels = plot_settings_dialog.get_selected_hole_ids()
                 
 
@@ -3979,10 +4095,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
             print("Error while loading DEM with rasterio:", str(e))
             return
 
-        print("DEM Data Loaded")
-        print("Shape:", self.DEM_data.shape)
-        print("DEM data type:", self.DEM_data.dtypes)
-        print("DEM values range from:", self.DEM_data.read().min(), "to", self.DEM_data.read().max())
+        ###print("DEM Data Loaded")
+        ###print("Shape:", self.DEM_data.shape)
+        ###print("DEM data type:", self.DEM_data.dtypes)
+        ###print("DEM values range from:", self.DEM_data.read().min(), "to", self.DEM_data.read().max())
         
         self.cross_section_dialogs = []
 
@@ -3996,7 +4112,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
            
         
     def open_desurvey_calc(self):
-        print("Button clicked!")
         try:
             self.desurvey_dialog = DesurveyCalc(self)
             result = self.desurvey_dialog.exec_()
@@ -4083,7 +4198,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
             warning_msg.exec_()
             return  # Stop execution of the function
             
-        # Count checked items in self.model_geochem, excluding the 'Select All' option
+        # Count checked items in self.model_geochem and exclude the 'Select All' option
         checked_items = sum(
             self.model_structure.item(index).checkState() == Qt.Checked
             for index in range(1, self.model_structure.rowCount())  # Start from index 1
@@ -4191,7 +4306,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
     @staticmethod
     def hemisphere_adjustment(drill_hole_azimuth, alpha, beta):
         if (alpha < 30 and (beta < 75 or beta > 285)):
-            # For these specific conditions, the hemisphere adjustment is reversed
+            # Hemisphere adjustment is reversed
             if 90 <= drill_hole_azimuth <= 270:
                 # return adjustment for upper hemisphere
                 return 90
@@ -4422,9 +4537,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                     data=self.data_desurveyed, 
                     hole_ids=selected_hole_ids, 
                     azimuth=azimuth, 
-                    attribute_column=attribute,  # or whatever the current attribute is
-                    attributes_model=self.model_attri,  # Your QStandardItemModel
-                    attributes_dict=self.attributes_dict,  # Your attributes dictionary
+                    attribute_column=attribute,  
+                    attributes_model=self.model_attri, 
+                    attributes_dict=self.attributes_dict, 
                     DEM_data=self.DEM_data if hasattr(self, 'DEM_data') else None, 
                     remove_outliers=self.remove_outliers, 
                     upper_quantile=self.upper_quantile, 
@@ -4473,7 +4588,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         
         
         
-    def column_type(self, column, dataframe):
+    def column_type(self, column, dataframe): # Determine column type
         if pd.api.types.is_numeric_dtype(dataframe[column]):
             return 'continuous'
         else:
@@ -4503,7 +4618,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
 
         if selected_attribute and selected_attribute not in self.attributes_dict:
             if self.column_type(selected_attribute, self.data_desurveyed) == 'continuous':
-                # Only calculate the IQR and remove outliers if the selected attribute is continuous.
+            
+                # calculate the IQR and remove outliers if the selected attribute is continuous.
                 data_copy = self.data_desurveyed.copy()
                 Q1 = data_copy[selected_attribute].quantile(0.25)
                 Q3 = data_copy[selected_attribute].quantile(0.75)
@@ -4524,7 +4640,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         column_type = None
         if selected_attribute:
             column_type = self.column_type(selected_attribute, self.data_desurveyed)
-
+        
+        # Categorical data plotting
         color_dict = None
         for hole_id in selected_hole_ids:
             hole_data = self.data_desurveyed[self.data_desurveyed['hole_id'] == hole_id]
@@ -4583,10 +4700,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         plt.show()
 
 
-
-
-
-    def add_check_all_option(self, model):
+    def add_check_all_option(self, model): # Check all option for the qlistviews
         check_all_item = QStandardItem("Select All")
 
         # Set font to italics
@@ -4611,19 +4725,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                 if child_item.isCheckable():
                     child_item.setCheckState(check_state)
 
-    def import_csv_method_lithology(self):
+    def import_csv_method_lithology(self): # Lithology Import
         self.data_lithology = self.import_csv_method(self.model_lithology)
         if self.data_lithology is not None:
             self.hole_id_listView_lithology.setModel(self.model_lithology)
             self.add_check_all_option(self.model_lithology)
 
-    def import_csv_method_geochem(self):
+    def import_csv_method_geochem(self): # geochem Import
         self.data_geochem = self.import_csv_method(self.model_geochem)
         if self.data_geochem is not None:
             self.hole_id_listView_geochem.setModel(self.model_geochem)
             self.add_check_all_option(self.model_geochem)
 
-    def import_csv_method_structure(self):
+    def import_csv_method_structure(self): # structure Import
         self.data_structure = self.import_csv_method(self.model_structure)
         if self.data_structure is not None:
             self.hole_id_listView_structure.setModel(self.model_structure)
@@ -4844,12 +4958,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         view = QTableView()
         view.setModel(model)
 
-        # Set the font of the horizontal header (the column names) to be bold
+        # Set the font of the horizontal header to be bold
         font = view.horizontalHeader().font()
         font.setBold(True)
         view.horizontalHeader().setFont(font)
 
-        # Set the font of the vertical header (the row names) to be bold, if you want
+        # Set the font of the vertical header to be bold
         font = view.verticalHeader().font()
         font.setBold(True)
         view.verticalHeader().setFont(font)
@@ -4861,10 +4975,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
     def updateLithDepthUnit(self, value): 
         if value == 0:
             self.lith_depth_unit = "feet"
-            self.slider_state = "ft"  # Add this line
+            self.slider_state = "ft" 
         else:
             self.lith_depth_unit = "meters"
-            self.slider_state = "m"  # And this line
+            self.slider_state = "m"  
 
         # Update all PlotWindows
         for lith_plot_window in self.lith_plot_windows.values():
@@ -4879,19 +4993,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
 
         # Update all DownholePlotWindows 
         for geochem_plot_window in self.geochem_plot_windows.values():
-            if isinstance(geochem_plot_window, DownholePlotWindow):  # Check if it's a DownholePlotWindow
+            if isinstance(geochem_plot_window, DownholePlotWindow):  
                 geochem_plot_window.updategeochemDepthUnit(value)
     
     def on_help_button_clicked(self):
-        try:
-            with open('help_ogv.txt', 'r') as f:
-                help_text = f.read()
-        except FileNotFoundError:
-            help_text = "Help file not found."
-
-        self.help_dialog = HelpDialog(help_text)
+        self.help_dialog = HelpDialog(HELP_TEXT)
         self.help_dialog.show_help()
         self.help_dialog.show()
+
+
         
     def save_state(self):
         # Logic to save the state of your application
@@ -4911,6 +5021,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         else:
             # Otherwise, save to the current save file
             self.save_state_to_file(self.current_save_file)
+            
+        # Show message box after saving
+        QMessageBox.information(self, "Save Successful", f"File saved to {self.current_save_file}")
 
     def save_state_as(self):
         # Get data from the models
@@ -4931,6 +5044,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
             self.current_save_file = fileName  # Update the current save file
             self.update_window_title() # Update the window title
             self.save_state_to_file(fileName)  # Save the state of the application
+            
+            # Show message box after saving
+            QMessageBox.information(self, "Save Successful", f"File saved as {fileName}")
 
     def save_state_to_file(self, file_name):
         # Get data from the models
@@ -4978,8 +5094,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                 self.load_model_data(self.model_attri, attributes)
 
                 
-                
-                
                 # Update the current save file to the file that was just opened
                 self.current_save_file = fileName
                 self.update_window_title()  # Update the window title
@@ -5021,7 +5135,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         self.setWindowTitle(full_title)
 
     def get_model_data(self, model):
-        return [model.item(i).text() for i in range(model.rowCount())]
+        data = []
+        for i in range(model.rowCount()):
+            item_text = model.item(i).text()
+            if item_text != "Select All":  # Exclude "Select All" from saved state
+                data.append(item_text)
+        return data
+
 
     def load_model_data(self, model, data):
         model.clear()
@@ -5029,8 +5149,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
             new_item = QStandardItem(item)
             new_item.setCheckable(True)  # Make the item checkable
             model.appendRow(new_item)
-            
 
+    
 
 class HelpDialog(QDialog):
     def __init__(self, help_text):
@@ -5045,15 +5165,12 @@ class HelpDialog(QDialog):
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.text_edit)
         self.setLayout(self.layout)
+        
+        self.setFixedSize(800, 600)
 
     def show_help(self):
-        try:
-            with open('C:/Users/bsomp/Downloads/help_ogv.txt', 'r') as f:
-                help_text = f.read()
-        except FileNotFoundError:
-            help_text = "Help file not found."
+        self.text_edit.setPlainText(HELP_TEXT)
 
-        self.text_edit.setPlainText(help_text)
 
 
 class pandasModel(QStandardItemModel):
