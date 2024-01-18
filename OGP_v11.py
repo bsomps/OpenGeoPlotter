@@ -25,10 +25,12 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QDialogButtonBox
 from PyQt5.QtWidgets import QInputDialog
 from mpl_toolkits.mplot3d import Axes3D
+import xml.etree.ElementTree as ET
 from matplotlib.text import Annotation
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QFrame
 import math
+import csv
 import Test_1_rc
 import OpenGeoUI2
 import pandas as pd
@@ -78,6 +80,7 @@ from scipy.spatial import ConvexHull
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QComboBox, QPushButton, QColorDialog, QLabel, QSpinBox, QListView, QScrollArea, QWidget, QDoubleSpinBox, QLineEdit, QGroupBox, QHBoxLayout, QGridLayout, QFileDialog, QTableView, QApplication, QSlider, QCheckBox, QTextEdit
 from PyQt5.QtWidgets import QProgressDialog
 from OGP_help import HELP_TEXT
+
 
 
 
@@ -390,9 +393,10 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
     def save_plot(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        file_name, _ = QFileDialog.getSaveFileName(self,"Save Plot","","All Files (*);;JPEG (*.jpeg);;PNG (*.png)", options=options)
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save Plot", "", "All Files (*);;JPEG (*.jpeg);;PNG (*.png);;SVG (*.svg)", options=options)
         if file_name:
             self.figure.savefig(file_name, dpi=200)
+
     
     def closeEvent(self, event):
         if self in self.main_window_reference.plot_windows:
@@ -689,7 +693,7 @@ class CrossSection(QDialog): # Cross section window
         self.y_axis_scale_factor = 1
         
         
-
+        
         # Set up the main vertical layout for the QDialog
         main_layout = QVBoxLayout(self)
 
@@ -769,7 +773,7 @@ class CrossSection(QDialog): # Cross section window
         self.save_to_csv_button.clicked.connect(self.on_save_to_csv_clicked)
         button_layout.addWidget(self.save_to_csv_button)
 
-        
+       
         # Create the QLabel for the title
         attribute_list_label = QLabel("Change Attribute")
         attribute_list_label.setAlignment(Qt.AlignCenter)  # Center align the text
@@ -839,6 +843,7 @@ class CrossSection(QDialog): # Cross section window
 
         self.plot()  # Create the plot
         self.setWindowTitle("Cross Section Visualizer")
+        
         
     def set_y_axis_scale_factor(self):
         try:
@@ -1297,7 +1302,7 @@ class CrossSection(QDialog): # Cross section window
         self.data['x_cross'] = self.data['x'] * np.cos(np.deg2rad(self.azimuth)) - self.data['y'] * np.sin(np.deg2rad(self.azimuth))
         self.data['y_cross'] = self.data['x'] * np.sin(np.deg2rad(self.azimuth)) + self.data['y'] * np.cos(np.deg2rad(self.azimuth))
         
-        
+
 
     def column_type(self, column, dataframe):
         if pd.api.types.is_numeric_dtype(dataframe[column]):
@@ -1387,7 +1392,7 @@ class CrossSection(QDialog): # Cross section window
         ##print("Theta in radians:", theta)  
         
         # Define the length of the line to extend from the origin
-        line_length = 2000  # 2000 meters in EITHER direction
+        line_length = 5000  # 2000 meters in EITHER direction
         
         # Calculate changes in x and y based on the new azimuth
         dx = line_length * np.cos(theta)
@@ -1427,6 +1432,7 @@ class CrossSection(QDialog): # Cross section window
         
         # Plot the adjusted topographic profile on the given axes
         ax.plot(x_values, adjusted_profile, color='black', alpha=alpha_level, zorder=4)
+
         
     def secondary_bar_plot(self):
     
@@ -1482,11 +1488,11 @@ class CrossSection(QDialog): # Cross section window
 
         # Compute the offset based on the y-axis range
         OFFSET_FRACTION = 0.01
-        offset = OFFSET_FRACTION * (y_max - y_min)
+        offset = OFFSET_FRACTION * (y_max - y_min) * self.y_axis_scale_factor
 
         # Compute the maximum bar length based on the y-axis range
         MAX_BAR_LENGTH_FRACTION = 0.05
-        MAX_BAR_LENGTH = MAX_BAR_LENGTH_FRACTION * (y_max - y_min)
+        MAX_BAR_LENGTH = MAX_BAR_LENGTH_FRACTION * (y_max - y_min) * self.y_axis_scale_factor
         
         for hole_id in self.hole_ids:
             hole_data = filtered_data[filtered_data['hole_id'] == hole_id]
@@ -1558,13 +1564,34 @@ class CrossSection(QDialog): # Cross section window
         ax.text(x_position, y_position_max + 0.05, bar_column, va='center', ha='right', transform=ax.transAxes, fontweight='bold')
 
     def calculate_tick_interval(self, min_value, max_value):
+        # Determine the total distance
         distance = max_value - min_value
+
+        # Decide on an optimal number of ticks (you can adjust this)
+        desired_num_ticks = 10
+
+        # Calculate the rough interval
+        rough_interval = distance / desired_num_ticks
+
+        # Adjust the interval to a 'nice' number for readability
+        magnitude = 10 ** np.floor(np.log10(rough_interval))
+        interval = round(rough_interval / magnitude) * magnitude
+
+        # Handle special cases for very large or small intervals
+        if interval == 0:
+            interval = magnitude
+        if distance / interval > 2 * desired_num_ticks:
+            interval *= 2
+
+        # Adjust for specific distance thresholds
         if distance > 2000:
-            return 500
+            interval = max(interval, 500)
         elif distance > 600:
-            return 200
+            interval = max(interval, 200)
         else:
-            return 100
+            interval = max(interval, 100)
+
+        return interval
 
 
     def plot(self): # Main drill hole plotting function
@@ -1884,6 +1911,7 @@ class CrossSection(QDialog): # Cross section window
             min_depth_index = hole_data['z'].idxmin()
             
             print(self.selected_hole_ids_for_labels, hole_id)
+            
             if self.selected_hole_ids_for_labels is None or hole_id in self.selected_hole_ids_for_labels:
             
                 if self.is_plan_view:
@@ -1954,6 +1982,7 @@ class CrossSection(QDialog): # Cross section window
             tick_labels = [f"{int(tick + offset)}" for tick in tick_values]  # Adjust for offset
             ax.set_xticks(tick_values)
             ax.set_xticklabels(tick_labels)
+            
             # Apply the y-axis scale factor
             if self.y_axis_scale_factor != 1:
                 ax.set_aspect(self.y_axis_scale_factor) 
@@ -2061,6 +2090,8 @@ class CrossSection(QDialog): # Cross section window
         self.canvas.draw()
         self.canvases.append(self.canvas)
         
+    
+        
     def plot_label_within_limits(self, ax, x, y, text, fontsize=8): # Plots the labels inside the plot area
         x_min, x_max = ax.get_xlim()  # Get x-limits
         y_min, y_max = ax.get_ylim()  # Get y-limits
@@ -2081,6 +2112,8 @@ class CrossSection(QDialog): # Cross section window
 
         # Plot the label
         ax.text(x, label_y, text, fontsize=fontsize, zorder=6, ha=ha)
+
+
 
         
     def toggle_view(self):
@@ -3574,7 +3607,7 @@ class CombinedPlotWindow(QtWidgets.QMainWindow): # Downline line plot and graphi
     def save_plot(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        file_name, _ = QFileDialog.getSaveFileName(self,"Save Plot","","All Files (*);;JPEG (*.jpeg);;PNG (*.png)", options=options)
+        file_name, _ = QFileDialog.getSaveFileName(self,"Save Plot", "", "All Files (*);;JPEG (*.jpeg);;PNG (*.png);;SVG (*.svg)", options=options)
         if file_name:
             self.figure.savefig(file_name, dpi=200)
             
