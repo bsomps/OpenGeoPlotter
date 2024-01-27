@@ -66,6 +66,9 @@ Once the selected hole and parameters are set you can click "view in 3d" for a 3
    	  
 Each time you generate a plot, a new window will open with the plot. The window includes navigation controls for zooming and panning the plot.
 
+Setting up a DEM for topo line
+
+After clicking the "Upload DEM" button you will be prompted to select a DEM (.TIF) from your local files. Make sure that your DEM was exported in the same coordinate system as your desurveyed data. Make sure that the DEM is large enough to cover your project area and a bit extra as a buffer. The extrapolated topo line will be drawn using your highest Z value (the drill hole that originates at the highest elevation) and extened outwards in either direction based on the user's viewing azimuth. 
 
 Plot Settings
 
