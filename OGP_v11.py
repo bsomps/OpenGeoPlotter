@@ -67,7 +67,6 @@ from matplotlib.colors import Normalize
 import mplstereonet
 from mplstereonet.stereonet_math import pole, plane
 from mplstereonet.stereonet_axes import StereonetAxes
-import numpy as np
 from matplotlib.patches import Polygon
 import rasterio
 from rasterio.features import geometry_mask, geometry_window
@@ -77,9 +76,11 @@ from sklearn.cluster import DBSCAN
 from pykrige.ok import OrdinaryKriging
 from scipy.interpolate import Rbf
 from scipy.spatial import ConvexHull
+from scipy.spatial import distance
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QComboBox, QPushButton, QColorDialog, QLabel, QSpinBox, QListView, QScrollArea, QWidget, QDoubleSpinBox, QLineEdit, QGroupBox, QHBoxLayout, QGridLayout, QFileDialog, QTableView, QApplication, QSlider, QCheckBox, QTextEdit
 from PyQt5.QtWidgets import QProgressDialog
 from OGP_help import HELP_TEXT
+import matplotlib.transforms as mtransforms
 
 
 
@@ -633,7 +634,7 @@ class ColumnSelectionDialog(QtWidgets.QDialog, Ui_ColumnSelectionDialog): # Wind
 
 class CrossSection(QDialog): # Cross section window
     MAX_BAR_LENGTH = 50 # for auxiliary bar plot
-    def __init__(self, data, hole_ids, azimuth, attribute_column=None, attributes_model=None, attributes_dict=None, DEM_data=None, remove_outliers=True, remove_outliers_auxiliary=True, checkbox_add_grid_lines=True, upper_quantile=75.0, lower_quantile=25.0, IQR=3.0, x_buffer=120.0, y_buffer=0.05, line_width=4, selected_hole_ids_for_labels=None):
+    def __init__(self, data, hole_ids, azimuth, attribute_column=None, attributes_model=None, attributes_dict=None, DEM_data=None, remove_outliers=True, remove_outliers_auxiliary=True, checkbox_add_grid_lines=True, checkbox_add_change_tick=True, upper_quantile=75.0, lower_quantile=25.0, IQR=3.0, x_buffer=120.0, y_buffer=0.05, line_width=4, selected_hole_ids_for_labels=None):
         super().__init__()
         print(selected_hole_ids_for_labels)  
 
@@ -648,6 +649,7 @@ class CrossSection(QDialog): # Cross section window
         self.drag_region = None
         self.is_plan_view = False
         self.generate_contours_flag = False
+        self.isolate_flag = False
         self.canvases = []
         self.DEM_data = DEM_data
         if DEM_data is not None:
@@ -677,6 +679,7 @@ class CrossSection(QDialog): # Cross section window
         self.bar_vmin = None
         self.bar_vmax = None
         self.checkbox_add_grid_lines = checkbox_add_grid_lines
+        self.checkbox_add_change_tick = checkbox_add_change_tick
         self.attributes_model = attributes_model
         self.setup_attribute_list_view()
         self.attributes_model.itemChanged.connect(self.on_attribute_selection_changed)
@@ -735,12 +738,16 @@ class CrossSection(QDialog): # Cross section window
         self.y_axis_scale_factor_input.setPlaceholderText("Enter vertical exaggeration (e.g., 2)")
         button_layout.addWidget(self.y_axis_scale_factor_input)
 
-        
-
+       
         # Add hover tool
         hover_tool_btn = QPushButton("Hover Tool")
         hover_tool_btn.clicked.connect(self.activate_hover_tool)
         button_layout.addWidget(hover_tool_btn)
+        
+        # Add isolate button
+        self.isolate_button = QPushButton("Isolate Data", self)
+        self.isolate_button.clicked.connect(self.isolate)
+        button_layout.addWidget(self.isolate_button)
 
         # Add image overlay 
         add_image_btn = QPushButton("Add Image Overlay")
@@ -1012,8 +1019,6 @@ class CrossSection(QDialog): # Cross section window
             self.outlier_scale = scale
             
             
-           
-
     def generate_contours(self):
         # Call the method to select the contour column and set outlier parameters
         self.select_contour_column()
@@ -1022,6 +1027,63 @@ class CrossSection(QDialog): # Cross section window
         if hasattr(self, 'contour_column'):  # Check if the column was successfully selected
             self.generate_contours_flag = True
             self.plot()  # Replot with contours
+            
+    def select_isolate(self):
+        # Use the currently active attribute column
+        active_column = self.attribute_column
+
+        # Create a custom dialog
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Data Isolate")
+        layout = QVBoxLayout(dialog)
+
+        # Determine if the column is numerical or categorical and add appropriate widgets
+        if pd.api.types.is_numeric_dtype(self.data[active_column]):
+            # Display a label for numerical data
+            range_label = QLabel("Select Data Range to Isolate")
+            layout.addWidget(range_label)
+
+            # If column is numerical, add range selectors
+            min_value = self.data[active_column].min()
+            max_value = self.data[active_column].max()
+            self.min_range_input = QLineEdit(dialog)
+            self.min_range_input.setPlaceholderText(f"Min ({min_value})")
+            layout.addWidget(self.min_range_input)
+
+            self.max_range_input = QLineEdit(dialog)
+            self.max_range_input.setPlaceholderText(f"Max ({max_value})")
+            layout.addWidget(self.max_range_input)
+        else:
+            # Display a label for categorical data
+            name_label = QLabel("Select Name to Isolate")
+            layout.addWidget(name_label)
+
+            # If column is categorical, add a dropdown with unique values
+            unique_values = self.data[active_column].unique()
+            self.category_combo = QComboBox(dialog)
+            self.category_combo.addItems(unique_values.astype(str))
+            layout.addWidget(self.category_combo)
+
+        # OK and Cancel buttons
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, dialog)
+        layout.addWidget(buttons)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+
+        dialog.exec_()
+
+        # Handle dialog acceptance
+        if dialog.result() == QDialog.Accepted:
+            if pd.api.types.is_numeric_dtype(self.data[active_column]):
+                self.isolate_range = (float(self.min_range_input.text()), float(self.max_range_input.text()))
+            else:
+                self.isolate_value = self.category_combo.currentText()
+            self.isolate_column = active_column
+            self.isolate_flag = True
+            self.plot()  # Replot
+
+    def isolate(self):
+        self.select_isolate()
         
     def on_azimuth_changed(self, value):
         self.azimuth = float(value)
@@ -1058,7 +1120,13 @@ class CrossSection(QDialog): # Cross section window
     def update_plot(self, attribute_column):
         self.attribute_column = attribute_column
         self.generate_contours_flag = False
+        self.isolate_flag = False
         self.bar_column = None
+        
+        # Reset isolation variables to indicate 'no isolation'
+        self.isolate_column = None
+        self.isolate_range = None
+        self.isolate_value = None
 
         
         # Check if the y-axis scale factor input is empty
@@ -1392,7 +1460,12 @@ class CrossSection(QDialog): # Cross section window
         ##print("Theta in radians:", theta)  
         
         # Define the length of the line to extend from the origin
-        line_length = 5000  # 2000 meters in EITHER direction
+        min_x_with_buffer = self.min_x_cross - self.buffer_x
+        max_x_with_buffer = self.max_x_cross + self.buffer_x
+        
+        line_length = max_x_with_buffer - min_x_with_buffer
+        print("line length:", line_length)
+        
         
         # Calculate changes in x and y based on the new azimuth
         dx = line_length * np.cos(theta)
@@ -1592,6 +1665,29 @@ class CrossSection(QDialog): # Cross section window
             interval = max(interval, 100)
 
         return interval
+        
+        
+        
+    def determine_plot_style(self, current_value, hole_data, i, cmap, norm):
+        if hasattr(self, 'isolate_column') and self.isolate_column:
+            value = hole_data[self.isolate_column].iloc[i]
+            if pd.api.types.is_numeric_dtype(self.data[self.isolate_column]):
+                value_in_range = self.isolate_range[0] <= value <= self.isolate_range[1]
+            else:
+                value_in_range = value == self.isolate_value
+
+            if value_in_range:
+                # For values within the range, return the normal style
+                return cmap(norm(current_value)), self.line_width, 1.0, 5  # Normal alpha and zorder
+            else:
+                # For values outside the range, return the 'inactive' style
+                return 'black', 0.5, 0.5, 1  # Reduced alpha and lower zorder
+        else:
+            # If no isolation is set, return the normal style
+            return cmap(norm(current_value)), self.line_width, 1.0, 5  # Normal alpha and zorder
+
+
+
 
 
     def plot(self): # Main drill hole plotting function
@@ -1691,81 +1787,82 @@ class CrossSection(QDialog): # Cross section window
                 # Cap the outliers
                 values = np.clip(values, lower_threshold, upper_threshold)
 
-            # Extend the grid for the boundary
+            # Define the grid points for interpolation
             boundary_width = 0.1  # adjust as needed
-            extended_grid_x = np.linspace(min(x_cross) - boundary_width, max(x_cross) + boundary_width, num=50)
-            extended_grid_z = np.linspace(min(z) - boundary_width, max(z) + boundary_width, num=50)
+            grid_x_min, grid_x_max = min(x_cross) - boundary_width, max(x_cross) + boundary_width
+            grid_z_min, grid_z_max = min(z) - boundary_width, max(z) + boundary_width
+
+            num_grid_points = 50  # adjust as needed
+            extended_grid_x = np.linspace(grid_x_min, grid_x_max, num=num_grid_points)
+            extended_grid_z = np.linspace(grid_z_min, grid_z_max, num=num_grid_points)
             extended_grid_x, extended_grid_z = np.meshgrid(extended_grid_x, extended_grid_z)
 
-            # Perform RBF interpolation on the original data
-            rbf = Rbf(x_cross, z, values, function='multiquadric', smooth=0.05)
+            # Density-based masking to eliminate far-off extrapolations
+            nearest_distance_threshold = 50  # adjust based on your data scale
+            distance_to_nearest = distance.cdist(np.column_stack([x_cross, z]), np.column_stack([x_cross, z])).min(axis=1)
+
+            density_mask = distance_to_nearest < nearest_distance_threshold
+
+            # Apply the density mask
+            x_cross, z, values = x_cross[density_mask], z[density_mask], values[density_mask]
+
+            # Perform RBF interpolation on the refined data
+            rbf = Rbf(x_cross, z, values, function='cubic', smooth=0.1)  # Adjust function and smoothing factor as needed
             z_pred = rbf(extended_grid_x, extended_grid_z)
 
-            # Create a mask for the original data range
-            mask = ((extended_grid_x >= min(x_cross)) & (extended_grid_x <= max(x_cross)) & 
-                    (extended_grid_z >= min(z)) & (extended_grid_z <= max(z)))
+            # Create a more refined mask for the original data range and density-based masking
+            mask = ((extended_grid_x >= min(x_cross)) & (extended_grid_x <= max(x_cross)) &
+                    (extended_grid_z >= min(z)) & (extended_grid_z <= max(z)) &
+                    (distance.cdist(np.column_stack([extended_grid_x.ravel(), extended_grid_z.ravel()]), 
+                                                      np.column_stack([x_cross, z])).min(axis=1).reshape(extended_grid_x.shape) < nearest_distance_threshold))
 
-            # Apply the mask to set boundary values to zero
-            z_pred[~mask] = 0  # Set values outside the original data range to zero
+            # Apply the refined mask
+            z_pred[~mask] = np.nan  # Set values outside the refined mask to NaN or a predefined boundary value
 
             # Plotting
             contourf = ax.contourf(extended_grid_x, extended_grid_z, z_pred, levels=10, cmap='Spectral_r', alpha=0.5, zorder=0)
 
-            
             # levels to be made transparent
             num_transparent_levels = 3
 
             # Find collections corresponding to the first 3 contour levels and set their alpha to 0
             for collection in contourf.collections[:num_transparent_levels]:
                 collection.set_alpha(0)  # Set alpha to 0 for these levels
+
                 
         # New DataFrame to store the extended data
         self.extended_data = pd.DataFrame()
 
-          
+        
         # Drill hole plotting
         for hole_id in self.hole_ids:
             hole_data = self.data[self.data['hole_id'] == hole_id]
             if hole_data.empty:
-                
                 continue
-                
-            # Plot the full hole trace as a thin black line
-            if self.is_plan_view:
-                ax.plot(hole_data['x'], hole_data['y'], color='black', linewidth=0.5, alpha=0.5, zorder=4)
-            else:
-                ax.plot(hole_data['x_cross'], hole_data['z'], color='black', pickradius=50, linewidth=0.5, alpha=0.5, zorder=1)
 
-            
-            hole_data.sort_values('z', inplace=True, ascending=False)
             
             # Initialize a list to store colors for each point
             hole_colors = []
             
-            # Contineous data plotting
+            # Continuous data plotting
             if self.attribute_column:
                 if self.column_type(self.attribute_column, self.data) == 'continuous':
                     cmap = plt.get_cmap('Spectral_r')
                     norm = plt.Normalize(vmin=vmin, vmax=vmax)
                     for i in range(1, len(hole_data)):
                         current_value = hole_data[self.attribute_column].iloc[i]
-                        
-                        if pd.notna(current_value):  # Only plot when current data point has attribute data          
-                            if self.is_plan_view:
-                                x_values = hole_data['x'].iloc[i-1:i+1]
-                                y_values = hole_data['y'].iloc[i-1:i+1]
-                                
-                                ax.plot(x_values, y_values, color=cmap(norm(current_value)), linewidth=self.line_width, zorder=5, picker=True, pickradius=50, label=str(i))
-                                
-                            else:
-                                x_values = hole_data['x_cross'].iloc[i-1:i+1]
-                                z_values = hole_data['z'].iloc[i-1:i+1]
-                                
-                                ax.plot(x_values, z_values, color=cmap(norm(current_value)), linewidth=self.line_width, zorder=5, picker=True, pickradius=50, label=str(i))
+                        x_values = hole_data['x_cross' if not self.is_plan_view else 'x'].iloc[i-1:i+1]
+                        y_values = hole_data['z' if not self.is_plan_view else 'y'].iloc[i-1:i+1]
+                        if pd.notna(current_value):  # Only plot when current data point has attribute data
+                            color, line_width, alpha, zorder = self.determine_plot_style(current_value, hole_data, i, cmap, norm)
                             
-                            
+                            ax.plot(x_values, y_values, color=color, linewidth=line_width, alpha=alpha, zorder=zorder, picker=True, pickradius=50, label=str(i))
+                        else:
+                            ax.plot(x_values, y_values, color="black", linewidth=0.5, alpha=0.5, zorder=1, picker=True, pickradius=50)
+
                     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
                     sm.set_array([])
+
                 
                 # Categorical data plotting
                 else: 
@@ -1780,24 +1877,30 @@ class CrossSection(QDialog): # Cross section window
                                 if color_val in self.attributes_dict[self.attribute_column]:
                                     settings = self.attributes_dict[self.attribute_column][color_val]
                                     
-                                    # Check if line_width is 0, if so set to 0.5 and color to black
-                                    line_width = settings["line_width"] if settings["line_width"] != 0 else 0.5
-                                    color = settings["color"] if settings["line_width"] != 0 else "black"
+                                    # Determine color and line width based on user's selection
+                                    if hasattr(self, 'isolate_column') and self.isolate_column and color_val != self.isolate_value:
+                                        color = 'black'
+                                        line_width = 0.5
+                                        alpha=0.5
+                                        zorder=1
+                                        
+                                       
+                                    else:
+                                        line_width = settings["line_width"] if settings["line_width"] != 0 else 0.5
+                                        color = settings["color"] if settings["line_width"] != 0 else "black"
+                                        zorder = 5 if settings["line_width"] != 0 else 1
 
-                                    ax.plot(x_values, y_values, color=color, linewidth=line_width, zorder=5, picker=True, pickradius=50, label=str(i-1))
-                                    
+                                    ax.plot(x_values, y_values, color=color, linewidth=line_width, zorder=zorder, picker=True, pickradius=50, label=str(i-1))
                                 else:
                                     # Default when the color value is not found in the predefined attributes dictionary
                                     ax.plot(x_values, y_values, color="black", linewidth=0.5, alpha=0.5, picker=True, pickradius=50, zorder=4)
                             else:
                                 # Default when the attribute data is missing
                                 ax.plot(x_values, y_values, color="black", linewidth=0.5, alpha=0.5, picker=True, pickradius=50, zorder=4)
-
                     else:
                         # If the attribute column isn't in the predefined attributes dictionary, use default color mapping
                         unique_vals = self.data[self.attribute_column].unique()
-                        colors = plt.cm.get_cmap('tab20', len(unique_vals))
-                        color_dict = dict(zip(unique_vals, colors(range(len(unique_vals)))))
+                        color_dict = dict(zip(unique_vals, plt.cm.get_cmap('tab20', len(unique_vals))(range(len(unique_vals)))))
 
                         for i in range(1, len(hole_data)):
                             x_values = hole_data['x_cross' if not self.is_plan_view else 'x'].iloc[i-1:i+1]
@@ -1806,14 +1909,29 @@ class CrossSection(QDialog): # Cross section window
                             if pd.notna(hole_data[self.attribute_column].iloc[i]):  # Only plot when attribute data exists
                                 color_val = hole_data[self.attribute_column].iloc[i]
 
-                                if color_val in color_dict:
-                                    ax.plot(x_values, y_values, color=color_dict[color_val], linewidth=self.line_width, zorder=5, picker=True, pickradius=50, label=str(i-1))
+                                # Determine color and line width based on user's selection
+                                if hasattr(self, 'isolate_column') and self.isolate_column and color_val != self.isolate_value:
+                                    color = 'black'
+                                    line_width = 0.5
+                                    alpha = 0.5
+                                    zorder = 1
+                                    
+                                elif color_val in color_dict:
+                                    color = color_dict[color_val]
+                                    line_width = self.line_width
+                                    zorder=5
                                 else:
                                     # Default when the color value is not found in the generated color dictionary
-                                    ax.plot(x_values, y_values, color="black", linewidth=0.5, alpha=0.5, zorder=1)
+                                    color = "black"
+                                    line_width = 0.5
+                                    alpha = 0.5
+                                    zorder = 1
+                                    
+                                ax.plot(x_values, y_values, color=color, linewidth=line_width, zorder=zorder, picker=True, pickradius=50, label=str(i-1))
                             else:
                                 # Default when the attribute data is missing
                                 ax.plot(x_values, y_values, color="black", linewidth=0.5, alpha=0.5, picker=True, zorder=1)
+
             
             # No data plotting
             else:
@@ -1839,14 +1957,21 @@ class CrossSection(QDialog): # Cross section window
                     # Determine the color for categorical data
                     elif self.attribute_column in self.attributes_dict:
                         color_val = hole_data[self.attribute_column].iloc[i]
-                        if pd.notna(color_val) and color_val in self.attributes_dict[self.attribute_column]:
-                            settings = self.attributes_dict[self.attribute_column][color_val]
-                            # Set color to black if line_width is 0, else use the predefined color
-                            color = 'black' if settings["line_width"] == 0 else settings["color"]
-                        else:
-                            color = 'black'  # Default color
-                else:
-                    color = 'black'  # Default color for no data
+                        if pd.notna(color_val):
+                            if color_val in self.attributes_dict[self.attribute_column]:
+                                settings = self.attributes_dict[self.attribute_column][color_val]
+                                # Set color to black if line_width is 0, else use the predefined color
+                                color = 'black' if settings["line_width"] == 0 else settings["color"]
+                            else:
+                                # If color not in predefined dictionary, use 'tab20' color ramp
+                                if 'tab20' not in self.attributes_dict:
+                                    unique_vals = self.data[self.attribute_column].dropna().unique()
+                                    colors = plt.cm.get_cmap('tab20', len(unique_vals))
+                                    self.attributes_dict['tab20'] = dict(zip(unique_vals, colors(range(len(unique_vals)))))
+                                color = self.attributes_dict['tab20'].get(color_val, 'black')
+                    else:
+                        color = 'black'  # Default color for no data
+
 
                 # Append the color to the list
                 hole_colors.append(mcolors.to_hex(color))
@@ -1958,36 +2083,85 @@ class CrossSection(QDialog): # Cross section window
             ax.set_ylabel('Northing', labelpad=15)
             ax.set_aspect('equal')
             
-        else:
-            # For cross-section view
-            min_x_with_buffer = self.min_x_cross - self.buffer_x
-            max_x_with_buffer = self.max_x_cross + self.buffer_x
+        else: # For cross-section view
+            if self.checkbox_add_change_tick:
+                min_x_with_buffer = self.min_x_cross - self.buffer_x
+                max_x_with_buffer = self.max_x_cross + self.buffer_x
 
-            ax.set_xlim([min_x_with_buffer, max_x_with_buffer])
-            ax.set_ylim([self.min_z - self.buffer_yz, self.max_z + self.buffer_yz])
-            ax.set_xlabel('Distance along cross-section line (m)', labelpad=20)
-            ax.set_ylabel('Elevation / Depth (m)', labelpad=20)
-            ax.tick_params(axis='x', labelsize=8)
+                ax.set_xlim([min_x_with_buffer, max_x_with_buffer])
+                ax.set_ylim([self.min_z - self.buffer_yz, self.max_z + self.buffer_yz])
+                ax.set_xlabel('Distance along cross-section line (m)', labelpad=20)
+                ax.set_ylabel('Elevation / Depth (m)', labelpad=20)
 
-            # Apply the y-axis scale factor
-            if self.y_axis_scale_factor != 1:
-                ax.set_aspect(self.y_axis_scale_factor)
+                # Adjust y-axis ticks and labels
+                ax.tick_params(axis='y', direction='in', length=30, width=0.3, pad=-2)
+                for label in ax.get_yticklabels():
+                    label.set_fontsize(8)  # Set font size
+                    label.set_alpha(0.5)   # Set transparency
+                    label.set_verticalalignment('bottom')  # Adjust vertical alignment if necessary
+                    label.set_horizontalalignment('left')
+
+                # Hide y-axis ticks and labels that are above self.max_z
+                yticks = ax.get_yticks()
+                yticklabels = ax.get_yticklabels()
+
+                for i, tick in enumerate(yticks):
+                    if tick > self.max_z:
+                        yticklabels[i].set_visible(False)
+                        ax.get_yticklines()[2*i].set_visible(False)
+                        ax.get_yticklines()[2*i+1].set_visible(False)
+                    
+
+                # Adjust x-axis ticks and labels
+                ax.tick_params(axis='x', direction='in', length=30, width=0.3, pad=-2)  # Thinner and longer x-axis ticks
+                # Calculate and set dynamic ticks using distance
+                tick_interval = self.calculate_tick_interval(min_x_with_buffer, max_x_with_buffer)
+                offset = -min_x_with_buffer
+                tick_values = np.arange(min_x_with_buffer, max_x_with_buffer, tick_interval)
+                tick_labels = [f"{int(tick + offset)}" for tick in tick_values]
+                tick_labels[0] = ''
+                ax.set_xticks(tick_values)
+                ax.set_xticklabels(tick_labels, rotation=90, ha='left', va='top', fontsize=8)  # Align right to the tick
+                for label in ax.get_xticklabels():
+                    label.set_alpha(0.5)
+                    label.set_verticalalignment('bottom')  # Adjust vertical alignment if necessary
+                    label.set_horizontalalignment('left')
+                    # Manually adjust label position using transform
+                    offset = mtransforms.ScaledTranslation(2/72, 0, ax.figure.dpi_scale_trans)
+                    label.set_transform(label.get_transform() + offset)
             else:
-                ax.set_aspect('equal')
+                # For cross-section view
+                min_x_with_buffer = self.min_x_cross - self.buffer_x
+                max_x_with_buffer = self.max_x_cross + self.buffer_x
 
-            # Calculate and set dynamic ticks using distance
-            tick_interval = self.calculate_tick_interval(min_x_with_buffer, max_x_with_buffer)
-            offset = -min_x_with_buffer  # Adjust offset for buffer
-            tick_values = np.arange(min_x_with_buffer, max_x_with_buffer, tick_interval)
-            tick_labels = [f"{int(tick + offset)}" for tick in tick_values]  # Adjust for offset
-            ax.set_xticks(tick_values)
-            ax.set_xticklabels(tick_labels)
-            
+                ax.set_xlim([min_x_with_buffer, max_x_with_buffer])
+                ax.set_ylim([self.min_z - self.buffer_yz, self.max_z + self.buffer_yz])
+                ax.set_xlabel('Distance along cross-section line (m)', labelpad=20)
+                ax.set_ylabel('Elevation / Depth (m)', labelpad=20)
+                ax.tick_params(axis='x', labelsize=8)
+
+                # Apply the y-axis scale factor
+                if self.y_axis_scale_factor != 1:
+                    ax.set_aspect(self.y_axis_scale_factor)
+                else:
+                    ax.set_aspect('equal')
+
+                # Calculate and set dynamic ticks using distance
+                tick_interval = self.calculate_tick_interval(min_x_with_buffer, max_x_with_buffer)
+                offset = -min_x_with_buffer  # Adjust offset for buffer
+                tick_values = np.arange(min_x_with_buffer, max_x_with_buffer, tick_interval)
+                tick_labels = [f"{int(tick + offset)}" for tick in tick_values]  # Adjust for offset
+                ax.set_xticks(tick_values)
+                ax.set_xticklabels(tick_labels)
+                
+                
+
             # Apply the y-axis scale factor
             if self.y_axis_scale_factor != 1:
                 ax.set_aspect(self.y_axis_scale_factor) 
             else:
                 ax.set_aspect('equal')
+
 
             # colors for sky
             colors = ["white", self.sky_color]
@@ -2029,7 +2203,6 @@ class CrossSection(QDialog): # Cross section window
 
                 # Use fill_between to fill the area above the topographic profile
                 ax.fill_between(x_values, adjusted_profile, upper_boundary, color=self.sky_color, alpha=alpha_level, zorder=3)
-
 
 
             else:
@@ -2082,10 +2255,13 @@ class CrossSection(QDialog): # Cross section window
         if self.y_axis_scale_factor != 0 and self.y_axis_scale_factor != 1:
             annotation_text = f"Vertical Exaggeration: {self.y_axis_scale_factor}x"
             # Place the annotation on the plot without a bounding box
-            # Adjust the x and y coordinates to place it in the lower left corner
-            # You may need to adjust these values based on your specific plot layout
-            ax.annotate(annotation_text, xy=(0.02, 0.02), xycoords='axes fraction',
-                        fontsize=7, style='italic')
+            if self.checkbox_add_change_tick:
+                ax.annotate(annotation_text, xy=(0.00, -0.025), xycoords='axes fraction',
+                            fontsize=7, style='italic')
+            else:
+                ax.annotate(annotation_text, xy=(0.02, 0.02), xycoords='axes fraction',
+                            fontsize=7, style='italic')
+                
                 
         self.canvas.draw()
         self.canvases.append(self.canvas)
@@ -3353,6 +3529,11 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
         self.checkbox_add_grid_lines = QCheckBox("Add Grid Lines")
         self.grid_layout.addWidget(self.checkbox_add_grid_lines)
         
+        # add a "Move tick markers in" checkbox
+        
+        self.checkbox_add_change_tick = QCheckBox("Move Tick Markers Inside Plot")
+        self.grid_layout.addWidget(self.checkbox_add_change_tick)
+        
         # Add hole_ids to the list view with a checkbox next to each
         for hole_id in self.hole_ids:
             item = QStandardItem(hole_id)
@@ -3406,6 +3587,7 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
                       remove_outliers=True,
                       remove_outliers_auxiliary=False,
                       add_grid_lines=False,
+                      add_change_tick=False,
                       upper_quantile=75,
                       lower_quantile=25,
                       IQR=3,
@@ -3417,6 +3599,7 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
         self.checkbox_remove_outliers.setChecked(remove_outliers)
         self.checkbox_aux_plot.setChecked(remove_outliers_auxiliary)
         self.checkbox_add_grid_lines.setChecked(add_grid_lines)
+        self.checkbox_add_change_tick.setChecked(add_change_tick)
         self.line_edit_upper_quantile.setText(str(upper_quantile))
         self.line_edit_lower_quantile.setText(str(lower_quantile))
         self.line_edit_IQR.setText(str(IQR))
@@ -3793,34 +3976,6 @@ class UnorientedPlot: # plot window for small circles/unoriented core structures
         plt.show()
         self.dialog.accept()
         
-class InputDialog(QDialog): # Dialog for cross section topo line settings
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        self.setWindowTitle("Raise or Lower Topo Line (meters)")
-        layout = QVBoxLayout(self)
-
-        # Label
-        self.label = QLabel("Enter value (positive to raise, negative to lower):")
-        layout.addWidget(self.label)
-
-        # Textbox
-        self.textbox = QLineEdit(self)
-        self.textbox.setText("0")  # Default value
-        layout.addWidget(self.textbox)
-
-        # OK and Cancel buttons
-        self.buttons = QPushButton("OK", self)
-        self.buttons.clicked.connect(self.accept)
-        layout.addWidget(self.buttons)
-
-    def get_value(self):
-        return self.textbox.text()
-
-
-
-
-
 
 
 
@@ -3868,6 +4023,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         
         
         self.checkbox_add_grid_lines = False
+        self.checkbox_add_change_tick = False
         self.remove_outliers_auxiliary = False
         self.remove_outliers = True
         self.upper_quantile = 75.0
@@ -4063,7 +4219,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         plot_settings_dialog.init_defaults(
             remove_outliers=self.remove_outliers,
             remove_outliers_auxiliary=self.remove_outliers_auxiliary,
-            add_grid_lines=self.checkbox_add_grid_lines,   # Note: Make sure to call isChecked()
+            add_grid_lines=self.checkbox_add_grid_lines,
+            add_change_tick=self.checkbox_add_change_tick,
             upper_quantile=self.upper_quantile,
             lower_quantile=self.lower_quantile,
             IQR=self.IQR,
@@ -4080,6 +4237,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                 # Retrieve and store the settings for "Apply to Auxiliary Bar Plot"
                 self.remove_outliers_auxiliary = plot_settings_dialog.checkbox_aux_plot.isChecked()
                 self.checkbox_add_grid_lines = plot_settings_dialog.checkbox_add_grid_lines.isChecked()
+                self.checkbox_add_change_tick = plot_settings_dialog.checkbox_add_change_tick.isChecked()
                 
                 upper_quantile_text = plot_settings_dialog.line_edit_upper_quantile.text()
                 self.upper_quantile = float(upper_quantile_text) if upper_quantile_text else 75.0  # default value
@@ -4583,7 +4741,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                     line_width=self.line_width, 
                     selected_hole_ids_for_labels=self.selected_hole_ids_for_labels, 
                     remove_outliers_auxiliary=self.remove_outliers_auxiliary, 
-                    checkbox_add_grid_lines=self.checkbox_add_grid_lines
+                    checkbox_add_grid_lines=self.checkbox_add_grid_lines,
+                    checkbox_add_change_tick=self.checkbox_add_change_tick
                 )  
                 cross_section.show()  # Show the CrossSection window immediately
                 self.cross_section_dialogs.append(cross_section)  # Append the dialog to the list
