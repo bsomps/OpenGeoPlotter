@@ -30,6 +30,8 @@ DOWNHOLE LINE PLOTS: This creates a line graph for a selected attribute. Depth i
 
 MERGING LINE PLOTS WITH A GRAPHIC LOG: Create a graphic log of one hole_id. (be sure to only have one graphic log open) Next, create up to 7 downline plots of the same hole_id. With the plots still open, you can click ‘merge plots’ to place them in the same window and on the same depth axis as the graphic log. Once open, press anywhere on the plot to draw a red line ruler across the window. 
 
+![Cross Section View](lineplots.png)
+
 CORRELATION MATRIX: This plot will pull all data in the geochem CSV that ends in the user selected “ending tag”. For example if you want to run it on all data that ends in “_ppm” it will only pull columns that end in “_ppm”. If you have data that has percent, ppm, ppb, ect you can simply concatenate an ending tag in excel like “_FA”, then choose “_FA” as your ending tag in the program. 
 
 CUSTOM PLOT: The custom plot button allows you to upload a custom plot in a .json format. These plots can include polygons drawn onto the plot, where any data points that fall within these polygons can be attributed to a new column in your data frame and exported to CSV. Example of a custom plot in .json format:
