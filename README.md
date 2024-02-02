@@ -13,7 +13,9 @@ Run the main script (OGP_v11.py) from the directory hosting the 'master' branch 
 
 This application is designed to import, process, and visualize geological drill hole data. The application uses a graphical user interface built with PyQt5, a Python binding for the Qt application framework.
 
-When you start the application, you will be presented with a main window. The main window provides you with controls for importing data, selecting hole IDs, managing attributes, and generating plots. 
+When you start the application, you will be presented with a main window. The main window provides you with controls for importing data, selecting hole IDs, managing attributes, and generating plots.
+
+![User Interface](images/userinterface.png)
 
 Import Data: The import buttons allow you to import your drill hole data. The data should be in a .csv format and contain columns for "hole_id" and depth, as well as any other attributes you are interested in. The program relies on a good clean CSV and does not provide any data manipulation in the table once it is imported. Please ensure your data does not contain NaNs (less than symbols etc) or inf values for numerical data. Most importantly, please ensure your column name for the hole ID is "hole_id" the program relies on this exact naming of the hole ID column.
 
