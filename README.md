@@ -42,7 +42,9 @@ You will need three CSV’s to desurvey your data. 1) A collar table 2) A survey
 
 
 CROSS SECTION VISUALIZER
-    
+
+![Cross Section View](images/Cross%20Section%20View.png)
+
  The 'Cross Section Visualizer' is a tool designed to take desurveyed drill hole data in a CSV format, with columns for x, y, and z coordinates, as well as any number of attribute columns.
 ** location column names must be exactly “x”, “y” and “z”. The tool will create a contineous drill hole line by using the x, y and z values to plot points, then from each 'point' a line is drawn up to the next point to create and display interval data. If the data cell is left blank, the tool will default to a thin black line (the drill hole trace). 
 
