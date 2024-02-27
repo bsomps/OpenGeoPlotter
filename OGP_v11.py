@@ -850,6 +850,7 @@ class CrossSection(QDialog): # Cross section window
 
         self.plot()  # Create the plot
         self.setWindowTitle("Cross Section Visualizer")
+       
         
         
     def set_y_axis_scale_factor(self):
@@ -1525,91 +1526,70 @@ class CrossSection(QDialog): # Cross section window
 
         
     def plot_bars(self, bar_column, ax):
-    
-        # Ensure bar_column is valid
         if bar_column not in self.data.columns:
             print(f"'{bar_column}' is not a valid column in the data.")
             return
-        
-        # Filter the data for only the selected holes
+
         selected_holes_data = self.data[self.data['hole_id'].isin(self.hole_ids)]
-        
-        # Get the min and max values of the bar column for normalization
-        min_bar_value, max_bar_value = selected_holes_data[bar_column].min(), selected_holes_data[bar_column].max()
-        print(f"Bar column: {bar_column}")
-        print(f"Min bar value: {min_bar_value}, Max bar value: {max_bar_value}")
-        
-        # Determine the range of the bar_column values based on outlier removal
-        filtered_data = selected_holes_data.copy()
-        if self.remove_outliers and self.remove_outliers_auxiliary:  
-            # Only filter outliers if both conditions are met
-            filtered_data = filtered_data[pd.to_numeric(filtered_data[bar_column], errors='coerce').notna()]
-            Q1_bar = filtered_data[bar_column].quantile(self.lower_quantile / 100)
-            Q3_bar = filtered_data[bar_column].quantile(self.upper_quantile / 100)
-            IQR_bar = Q3_bar - Q1_bar
-            filtered_data = filtered_data[~((filtered_data[bar_column] < (Q1_bar - self.IQR * IQR_bar)) | (filtered_data[bar_column] > (Q3_bar + self.IQR * IQR_bar)))]
-            self.bar_vmin = filtered_data[bar_column].min()
-            self.bar_vmax = filtered_data[bar_column].max()
-        else:
-            # Use original, unfiltered data
-            self.bar_vmin = selected_holes_data[bar_column].min()
-            self.bar_vmax = selected_holes_data[bar_column].max()
-        
-        self.filtered_bar_data = filtered_data
-        
+
+        # Normalize bar values
+        self.bar_vmin = selected_holes_data[bar_column].min()
+        self.bar_vmax = selected_holes_data[bar_column].max()
+
+        # Compute offset and bar length based on axis limits
         y_min, y_max = ax.get_ylim()
+        offset = 0.01 * (y_max - y_min) * self.y_axis_scale_factor
+        max_bar_length = 0.05 * (y_max - y_min) * self.y_axis_scale_factor
 
-        # Compute the offset based on the y-axis range
-        OFFSET_FRACTION = 0.01
-        offset = OFFSET_FRACTION * (y_max - y_min) * self.y_axis_scale_factor
-
-        # Compute the maximum bar length based on the y-axis range
-        MAX_BAR_LENGTH_FRACTION = 0.05
-        MAX_BAR_LENGTH = MAX_BAR_LENGTH_FRACTION * (y_max - y_min) * self.y_axis_scale_factor
-        
         for hole_id in self.hole_ids:
-            hole_data = filtered_data[filtered_data['hole_id'] == hole_id]
+            hole_data = selected_holes_data[selected_holes_data['hole_id'] == hole_id].sort_values('z')
             if hole_data.empty:
                 continue
 
-            # Sort the hole_data based on depth for proper segment computation
-            hole_data = hole_data.sort_values('z', ascending=True)
-            
-            for i in range(len(hole_data) - 1):
-                # Get the start and end points of the current segment in the drill trace
-                start_x, start_y = hole_data.iloc[i]['x_cross'], hole_data.iloc[i]['z']
-                end_x, end_y = hole_data.iloc[i+1]['x_cross'], hole_data.iloc[i+1]['z']
-                
-                # Compute the direction vector of the segment
+            # Calculate segment ids based on 25m intervals
+            hole_data['segment_id'] = (hole_data['z'] // 25).astype(int)
+
+            # Calculate a single direction and perpendicular vector per segment
+            segment_vectors = {}
+            for segment_id in hole_data['segment_id'].unique():
+                segment = hole_data[hole_data['segment_id'] == segment_id]
+                start_x, start_y = segment.iloc[0]['x_cross'], segment.iloc[0]['z']
+                end_x, end_y = segment.iloc[-1]['x_cross'], segment.iloc[-1]['z']
                 delta_x, delta_y = end_x - start_x, end_y - start_y
                 magnitude = np.sqrt(delta_x**2 + delta_y**2)
-                normalized_dir_vector = (delta_x/magnitude, delta_y/magnitude)
-                
-                # Compute the perpendicular vector
+                if magnitude == 0:
+                    continue  # Skip segments with no length
+                normalized_dir_vector = (delta_x / magnitude, delta_y / magnitude)
                 perp_vector = (-normalized_dir_vector[1], normalized_dir_vector[0])
-                
-                # If hole is dipping eastward, adjust (mirror) the perpendicular vector
+
+                # Adjust for eastward dipping
                 if delta_x < 0:
                     perp_vector = (-perp_vector[0], -perp_vector[1])
-                    
-                # If hole is vertical or near-vertical, force bars to stick to right side 
-                VERTICAL_THRESHOLD = 0.5  # Small threshold value
+
+                # Adjust for vertical or near-vertical holes
+                VERTICAL_THRESHOLD = 1
                 if abs(delta_x) < VERTICAL_THRESHOLD:
                     perp_vector = (1, 0)  # Force bars to the right side
 
-                # Compute the midpoint of the segment and offset it using the perpendicular vector
-                mid_x = (start_x + end_x) / 2 + perp_vector[0] * offset
-                mid_y = (start_y + end_y) / 2 + perp_vector[1] * offset
+                segment_vectors[segment_id] = perp_vector
 
-                # Compute the end point for the bar, based on the value in the selected column
-                bar_value = hole_data.iloc[i][bar_column]
+            # Plot bars using the segment's perpendicular vector
+            for i, row in hole_data.iterrows():
+                segment_id = row['segment_id']
+                if segment_id not in segment_vectors:
+                    continue
+                perp_vector = segment_vectors[segment_id]
+
+                mid_x = row['x_cross'] + perp_vector[0] * offset
+                mid_y = row['z'] + perp_vector[1] * offset
+
+                bar_value = row[bar_column]
                 normalized_bar_value = (bar_value - self.bar_vmin) / (self.bar_vmax - self.bar_vmin)
-                bar_length = MAX_BAR_LENGTH * normalized_bar_value
-                
+                bar_length = max_bar_length * normalized_bar_value
+
                 end_x = mid_x + bar_length * perp_vector[0]
                 end_y = mid_y + bar_length * perp_vector[1]
-                
-                # Plot the bar
+
                 ax.plot([mid_x, end_x], [mid_y, end_y], color='gray', zorder=10, alpha=0.5)
                 
                 
@@ -1681,7 +1661,7 @@ class CrossSection(QDialog): # Cross section window
                 return cmap(norm(current_value)), self.line_width, 1.0, 5  # Normal alpha and zorder
             else:
                 # For values outside the range, return the 'inactive' style
-                return 'black', 0.5, 0.5, 1  # Reduced alpha and lower zorder
+                return 'black', 0.3, 1, 4  # Reduced alpha and lower zorder
         else:
             # If no isolation is set, return the normal style
             return cmap(norm(current_value)), self.line_width, 1.0, 5  # Normal alpha and zorder
@@ -1701,6 +1681,7 @@ class CrossSection(QDialog): # Cross section window
         self.calculate_coordinates()
         self.figure.clear()  # Clear the entire figure
         ax = self.figure.add_subplot(111)
+        
         
         # Re-add the pencil drawings if there
         self.drawing_lines = []  # Clear existing line references
@@ -1788,17 +1769,17 @@ class CrossSection(QDialog): # Cross section window
                 values = np.clip(values, lower_threshold, upper_threshold)
 
             # Define the grid points for interpolation
-            boundary_width = 0.1  # adjust as needed
+            boundary_width = 0.1  # adjust
             grid_x_min, grid_x_max = min(x_cross) - boundary_width, max(x_cross) + boundary_width
             grid_z_min, grid_z_max = min(z) - boundary_width, max(z) + boundary_width
 
-            num_grid_points = 50  # adjust as needed
+            num_grid_points = 50  # adjust
             extended_grid_x = np.linspace(grid_x_min, grid_x_max, num=num_grid_points)
             extended_grid_z = np.linspace(grid_z_min, grid_z_max, num=num_grid_points)
             extended_grid_x, extended_grid_z = np.meshgrid(extended_grid_x, extended_grid_z)
 
             # Density-based masking to eliminate far-off extrapolations
-            nearest_distance_threshold = 50  # adjust based on your data scale
+            nearest_distance_threshold = 50  # should adjust based data scale?
             distance_to_nearest = distance.cdist(np.column_stack([x_cross, z]), np.column_stack([x_cross, z])).min(axis=1)
 
             density_mask = distance_to_nearest < nearest_distance_threshold
@@ -1807,7 +1788,7 @@ class CrossSection(QDialog): # Cross section window
             x_cross, z, values = x_cross[density_mask], z[density_mask], values[density_mask]
 
             # Perform RBF interpolation on the refined data
-            rbf = Rbf(x_cross, z, values, function='cubic', smooth=0.1)  # Adjust function and smoothing factor as needed
+            rbf = Rbf(x_cross, z, values, function='linear', smooth=0.1)  # Adjust function and smoothing factor 
             z_pred = rbf(extended_grid_x, extended_grid_z)
 
             # Create a more refined mask for the original data range and density-based masking
@@ -1836,7 +1817,7 @@ class CrossSection(QDialog): # Cross section window
         
         # Drill hole plotting
         for hole_id in self.hole_ids:
-            hole_data = self.data[self.data['hole_id'] == hole_id]
+            hole_data = self.data[self.data['hole_id'] == hole_id].sort_values('z')
             if hole_data.empty:
                 continue
 
@@ -1858,7 +1839,7 @@ class CrossSection(QDialog): # Cross section window
                             
                             ax.plot(x_values, y_values, color=color, linewidth=line_width, alpha=alpha, zorder=zorder, picker=True, pickradius=50, label=str(i))
                         else:
-                            ax.plot(x_values, y_values, color="black", linewidth=0.5, alpha=0.5, zorder=1, picker=True, pickradius=50)
+                            ax.plot(x_values, y_values, color="black", linewidth=0.3, alpha=1, zorder=4, picker=True, pickradius=50)
 
                     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
                     sm.set_array([])
@@ -1880,23 +1861,23 @@ class CrossSection(QDialog): # Cross section window
                                     # Determine color and line width based on user's selection
                                     if hasattr(self, 'isolate_column') and self.isolate_column and color_val != self.isolate_value:
                                         color = 'black'
-                                        line_width = 0.5
-                                        alpha=0.5
-                                        zorder=1
+                                        line_width = 0.3
+                                        alpha=1
+                                        zorder=4
                                         
                                        
                                     else:
-                                        line_width = settings["line_width"] if settings["line_width"] != 0 else 0.5
+                                        line_width = settings["line_width"] if settings["line_width"] != 0 else 0.3
                                         color = settings["color"] if settings["line_width"] != 0 else "black"
-                                        zorder = 5 if settings["line_width"] != 0 else 1
+                                        zorder = 5 if settings["line_width"] != 0 else 4
 
                                     ax.plot(x_values, y_values, color=color, linewidth=line_width, zorder=zorder, picker=True, pickradius=50, label=str(i-1))
                                 else:
                                     # Default when the color value is not found in the predefined attributes dictionary
-                                    ax.plot(x_values, y_values, color="black", linewidth=0.5, alpha=0.5, picker=True, pickradius=50, zorder=4)
+                                    ax.plot(x_values, y_values, color="black", linewidth=0.3, alpha=1, picker=True, pickradius=50, zorder=4)
                             else:
                                 # Default when the attribute data is missing
-                                ax.plot(x_values, y_values, color="black", linewidth=0.5, alpha=0.5, picker=True, pickradius=50, zorder=4)
+                                ax.plot(x_values, y_values, color="black", linewidth=0.3, alpha=1, picker=True, pickradius=50, zorder=4)
                     else:
                         # If the attribute column isn't in the predefined attributes dictionary, use default color mapping
                         unique_vals = self.data[self.attribute_column].unique()
@@ -1912,9 +1893,9 @@ class CrossSection(QDialog): # Cross section window
                                 # Determine color and line width based on user's selection
                                 if hasattr(self, 'isolate_column') and self.isolate_column and color_val != self.isolate_value:
                                     color = 'black'
-                                    line_width = 0.5
-                                    alpha = 0.5
-                                    zorder = 1
+                                    line_width = 0.3
+                                    alpha = 1
+                                    zorder = 4
                                     
                                 elif color_val in color_dict:
                                     color = color_dict[color_val]
@@ -1923,21 +1904,21 @@ class CrossSection(QDialog): # Cross section window
                                 else:
                                     # Default when the color value is not found in the generated color dictionary
                                     color = "black"
-                                    line_width = 0.5
-                                    alpha = 0.5
-                                    zorder = 1
+                                    line_width = 0.3
+                                    alpha = 1
+                                    zorder = 4
                                     
                                 ax.plot(x_values, y_values, color=color, linewidth=line_width, zorder=zorder, picker=True, pickradius=50, label=str(i-1))
                             else:
                                 # Default when the attribute data is missing
-                                ax.plot(x_values, y_values, color="black", linewidth=0.5, alpha=0.5, picker=True, zorder=1)
+                                ax.plot(x_values, y_values, color="black", linewidth=0.3, alpha=1, picker=True, zorder=4)
 
             
             # No data plotting
             else:
                 x_values = hole_data['x_cross' if not self.is_plan_view else 'x']
                 y_values = hole_data['z' if not self.is_plan_view else 'y']
-                ax.plot(x_values, y_values, color='black', linewidth=0.5, alpha=0.5, zorder=4)
+                ax.plot(x_values, y_values, color='black', linewidth=0.3, alpha=1, zorder=4)
                 
                 
             # Color collection for Continuous and Categorical data plotting
@@ -2019,6 +2000,9 @@ class CrossSection(QDialog): # Cross section window
 
             # Keep only necessary columns
             self.export_data = self.extended_data[export_columns]
+            
+            # Remove any rows where 'x', 'y', or 'z' is a blank cell
+            self.export_data = self.export_data.dropna(subset=['x', 'y', 'z'])
 
             # Find min and max's
             min_x_plan = min(min_x_plan, hole_data['x'].min())
@@ -2387,6 +2371,31 @@ class CrossSection(QDialog): # Cross section window
                     ax._last_annotation.remove()
                     delattr(ax, "_last_annotation")
                     canvas.draw()
+                    
+class SelectionDialog(QDialog):
+    def __init__(self, parent=None):
+        super(SelectionDialog, self).__init__(parent)
+        layout = QVBoxLayout(self)
+
+        # Option for DesurveyCalc
+        self.btnDesurveyCalc = QPushButton("Continuous Dataset", self)
+        self.btnDesurveyCalc.clicked.connect(self.openDesurveyCalc)
+        layout.addWidget(self.btnDesurveyCalc)
+
+        # Option for ContinuousDesurveyCalc
+        self.btnContinuousDesurveyCalc = QPushButton("Non-Continuous Dataset", self)
+        self.btnContinuousDesurveyCalc.clicked.connect(self.openContinuousDesurveyCalc)
+        layout.addWidget(self.btnContinuousDesurveyCalc)
+
+        self.choice = None
+
+    def openDesurveyCalc(self):
+        self.choice = 'DesurveyCalc'
+        self.accept()
+
+    def openContinuousDesurveyCalc(self):
+        self.choice = 'ContinuousDesurveyCalc'
+        self.accept()
 
    
 class ManageAttributesDialog(QDialog): # attribute manager button for cross section
@@ -3245,6 +3254,7 @@ class DesurveyCalc(QDialog): # Desurvey settings window
 
         # --- Drill hole data ---
         self.btn_drill_data = QPushButton('Upload drill hole data', self)
+        self.btn_drill_data.setStyleSheet("background-color: lightgray;")
         self.btn_drill_data.clicked.connect(self.load_drill_data_csv)
         layout.addWidget(self.btn_drill_data)
 
@@ -3253,14 +3263,21 @@ class DesurveyCalc(QDialog): # Desurvey settings window
 
         # Dropdowns for column selection for drill hole data
         self.cb_hole_id = QComboBox(self)
-        self.cb_depth = QComboBox(self)
+        self.cb_from_depth = QComboBox(self)
+        self.cb_to_depth = QComboBox(self)
+
+
+        # Adding widgets to the layout
         layout.addWidget(QLabel("Hole ID:"))
         layout.addWidget(self.cb_hole_id)
-        layout.addWidget(QLabel("Depth:"))
-        layout.addWidget(self.cb_depth)
+        layout.addWidget(QLabel("From Depth:"))
+        layout.addWidget(self.cb_from_depth)
+        layout.addWidget(QLabel("To Depth:"))
+        layout.addWidget(self.cb_to_depth)
         
         # --- Survey data ---
         self.btn_survey_data = QPushButton('Upload survey data', self)
+        self.btn_survey_data.setStyleSheet("background-color: lightgray;")
         self.btn_survey_data.clicked.connect(self.load_survey_data_csv)
         layout.addWidget(self.btn_survey_data)
 
@@ -3285,6 +3302,7 @@ class DesurveyCalc(QDialog): # Desurvey settings window
         
         # --- Collar data ---
         self.btn_collar_data = QPushButton('Upload collar data', self)
+        self.btn_collar_data.setStyleSheet("background-color: lightgray;")
         self.btn_collar_data.clicked.connect(self.load_collar_data_csv)
         layout.addWidget(self.btn_collar_data)
 
@@ -3307,10 +3325,12 @@ class DesurveyCalc(QDialog): # Desurvey settings window
         
         # Add the "Get Desurveyed CSV" button
         self.btn_get_csv = QPushButton('Get Desurveyed CSV', self)
+        self.btn_get_csv.setStyleSheet("background-color: lightblue;")
         self.btn_get_csv.clicked.connect(self.generate_csv)
         layout.addWidget(self.btn_get_csv)
 
         self.setLayout(layout)
+        
     
     def generate_csv(self):
         print("generate_csv triggered!")
@@ -3338,7 +3358,7 @@ class DesurveyCalc(QDialog): # Desurvey settings window
         fname, _ = QFileDialog.getOpenFileName(self, 'Open file', '/home')
         if fname:
             self.drill_data = pd.read_csv(fname)
-            self.update_combo_boxes(self.drill_data, [self.cb_hole_id, self.cb_depth])
+            self.update_combo_boxes(self.drill_data, [self.cb_hole_id, self.cb_from_depth, self.cb_to_depth])
             
     def load_survey_data_csv(self):
         fname, _ = QFileDialog.getOpenFileName(self, 'Open file', '/home')
@@ -3362,7 +3382,7 @@ class DesurveyCalc(QDialog): # Desurvey settings window
     @staticmethod
     def vlookup_approx(value, lookup_array, result_array):
         """
-        Emulate the behavior of VLOOKUP with TRUE flag for approximate match.
+        Try to emulate the behavior of VLOOKUP with TRUE flag for approximate match.
         Return the closest value that is less than or equal to the lookup value.
         If no match is found, return the last value in the result_array.
         """
@@ -3381,8 +3401,10 @@ class DesurveyCalc(QDialog): # Desurvey settings window
         
         # Extracting data from the UI elements
         hole_id_col_drill = self.cb_hole_id.currentText()
-        depth_col_drill = self.cb_depth.currentText()
+        from_depth_col_drill = self.cb_from_depth.currentText()
+        to_depth_col_drill = self.cb_to_depth.currentText()
         
+       
         hole_id_col_survey = self.cb_survey_hole_id.currentText()
         depth_col_survey = self.cb_depth_sur.currentText()
         azimuth_col_survey = self.cb_azimuth.currentText()
@@ -3397,18 +3419,34 @@ class DesurveyCalc(QDialog): # Desurvey settings window
         self.drill_data['y'] = np.nan
         self.drill_data['z'] = np.nan
         
+        # Ensure the data is sorted by 'hole_id' and 'to_depth' for correct processing
+        self.drill_data.sort_values(by=[hole_id_col_drill, to_depth_col_drill], inplace=True)
+        self.drill_data.reset_index(drop=True, inplace=True)
+
         unique_holes = self.drill_data[hole_id_col_drill].unique()
         print(f"Found {len(unique_holes)} unique hole IDs: {unique_holes}")
         
         try:
             for hole_id in unique_holes:
+                hole_data = self.drill_data[self.drill_data[hole_id_col_drill] == hole_id]
+                min_depth_idx = hole_data[to_depth_col_drill].idxmin()
+
+                
+                new_row = pd.DataFrame({
+                    hole_id_col_drill: [hole_id],
+                    to_depth_col_drill: [hole_data.loc[min_depth_idx, self.cb_from_depth.currentText()]],  # Use the selected 'from_depth' value
+                    'x': [np.nan], 'y': [np.nan], 'z': [np.nan]
+                }, index=[min_depth_idx])
+                self.drill_data = pd.concat([self.drill_data.iloc[:min_depth_idx], new_row, self.drill_data.iloc[min_depth_idx:]]).reset_index(drop=True)
+                
+                
                 # Filter collar, survey, and drill data by hole ID
                 collar_data_filtered = self.collar_data[self.collar_data[hole_id_col_collar] == hole_id]
                 survey_data_filtered = self.survey_data[self.survey_data[hole_id_col_survey] == hole_id]
                 drill_data_filtered = self.drill_data[self.drill_data[hole_id_col_drill] == hole_id]
 
                 # Identify the minimum depth value for this hole
-                min_depth = drill_data_filtered[depth_col_drill].min()
+                min_depth = drill_data_filtered[to_depth_col_drill].min()
 
                 # Initial coordinates for each hole
                 prev_x = collar_data_filtered.iloc[0][easting_col_collar]
@@ -3416,7 +3454,7 @@ class DesurveyCalc(QDialog): # Desurvey settings window
                 prev_z = collar_data_filtered.iloc[0][elevation_col_collar]
 
                 # Populate the row corresponding to the minimum depth value with collar coordinates
-                idx_in_main_df = self.drill_data.index[(self.drill_data[hole_id_col_drill] == hole_id) & (self.drill_data[depth_col_drill] == min_depth)].tolist()[0]
+                idx_in_main_df = self.drill_data.index[(self.drill_data[hole_id_col_drill] == hole_id) & (self.drill_data[to_depth_col_drill] == min_depth)].tolist()[0]
                 self.drill_data.at[idx_in_main_df, 'x'] = prev_x
                 self.drill_data.at[idx_in_main_df, 'y'] = prev_y
                 self.drill_data.at[idx_in_main_df, 'z'] = prev_z
@@ -3426,7 +3464,7 @@ class DesurveyCalc(QDialog): # Desurvey settings window
                 # Loop through drill data for the current hole
                 for index in range(len(drill_data_filtered)):
                     next_row = drill_data_filtered.iloc[index]  
-                    depth_F3 = next_row[depth_col_drill]
+                    depth_F3 = next_row[to_depth_col_drill]
 
                     # Get values for depth using the vlookup approximation
                     azimuth_F3 = self.vlookup_approx(depth_F3, survey_data_filtered[depth_col_survey].values, survey_data_filtered[azimuth_col_survey].values)
@@ -3447,7 +3485,7 @@ class DesurveyCalc(QDialog): # Desurvey settings window
                     prev_depth_F2 = depth_F3  # Update depth for next iteration
 
                     # Update the original DataFrame with new x, y, and z values
-                    idx_in_main_df = self.drill_data.index[(self.drill_data[hole_id_col_drill] == hole_id) & (self.drill_data[depth_col_drill] == depth_F3)].tolist()[0]
+                    idx_in_main_df = self.drill_data.index[(self.drill_data[hole_id_col_drill] == hole_id) & (self.drill_data[to_depth_col_drill] == depth_F3)].tolist()[0]
                     self.drill_data.at[idx_in_main_df, 'x'] = new_x
                     self.drill_data.at[idx_in_main_df, 'y'] = new_y
                     self.drill_data.at[idx_in_main_df, 'z'] = new_z
@@ -3458,6 +3496,368 @@ class DesurveyCalc(QDialog): # Desurvey settings window
             return self.drill_data
 
         return self.drill_data
+        
+        
+class ContinuousDesurveyCalc(QDialog): # Misnamed should be "non-continuous"
+    def __init__(self, parent=None):
+        super(ContinuousDesurveyCalc, self).__init__(parent)
+        self.initUI()
+
+    def initUI(self):
+        layout = QVBoxLayout()
+
+        # --- Drill hole data ---
+        self.btn_drill_data = QPushButton('Upload drill hole data', self)
+        self.btn_drill_data.setStyleSheet("background-color: lightgray;")
+        self.btn_drill_data.clicked.connect(self.load_drill_data_csv)
+        layout.addWidget(self.btn_drill_data)
+
+        self.drill_columns_label = QLabel("Choose columns for drill hole data:")
+        layout.addWidget(self.drill_columns_label)
+
+        # Dropdowns for column selection for drill hole data
+        self.cb_hole_id = QComboBox(self)
+        self.cb_from_depth = QComboBox(self)
+        self.cb_to_depth = QComboBox(self)
+
+
+        # Adding widgets to the layout
+        layout.addWidget(QLabel("Hole ID:"))
+        layout.addWidget(self.cb_hole_id)
+        layout.addWidget(QLabel("From Depth:"))
+        layout.addWidget(self.cb_from_depth)
+        layout.addWidget(QLabel("To Depth:"))
+        layout.addWidget(self.cb_to_depth)
+        
+        # --- Survey data ---
+        self.btn_survey_data = QPushButton('Upload survey data', self)
+        self.btn_survey_data.setStyleSheet("background-color: lightgray;")
+        self.btn_survey_data.clicked.connect(self.load_survey_data_csv)
+        layout.addWidget(self.btn_survey_data)
+
+        self.survey_columns_label = QLabel("Choose columns for survey data:")
+        layout.addWidget(self.survey_columns_label)
+
+        self.cb_survey_hole_id = QComboBox(self)
+        self.cb_depth_sur = QComboBox(self)
+        self.cb_azimuth = QComboBox(self)
+        self.cb_dip = QComboBox(self)
+        
+        
+        layout.addWidget(QLabel("Hole ID:"))
+        layout.addWidget(self.cb_survey_hole_id)
+        layout.addWidget(QLabel("Depth:"))
+        layout.addWidget(self.cb_depth_sur)
+        layout.addWidget(QLabel("Azimuth:"))
+        layout.addWidget(self.cb_azimuth)
+        layout.addWidget(QLabel("Dip:"))
+        layout.addWidget(self.cb_dip)
+        
+        
+        # --- Collar data ---
+        self.btn_collar_data = QPushButton('Upload collar data', self)
+        self.btn_collar_data.setStyleSheet("background-color: lightgray;")
+        self.btn_collar_data.clicked.connect(self.load_collar_data_csv)
+        layout.addWidget(self.btn_collar_data)
+
+        self.collar_columns_label = QLabel("Choose columns for collar data:")
+        layout.addWidget(self.collar_columns_label)
+
+        self.cb_collar_hole_id = QComboBox(self)
+        self.cb_easting = QComboBox(self)
+        self.cb_northing = QComboBox(self)
+        self.cb_elevation = QComboBox(self)
+        self.cb_start_depth = QComboBox(self)
+        self.cb_final_depth = QComboBox(self)
+        
+        layout.addWidget(QLabel("Hole ID:"))
+        layout.addWidget(self.cb_collar_hole_id)
+        layout.addWidget(QLabel("Easting (X):"))
+        layout.addWidget(self.cb_easting)
+        layout.addWidget(QLabel("Northing (Y):"))
+        layout.addWidget(self.cb_northing)
+        layout.addWidget(QLabel("Elevation (Z):"))
+        layout.addWidget(self.cb_elevation)
+        layout.addWidget(QLabel("Start Depth:"))
+        layout.addWidget(self.cb_start_depth)
+        layout.addWidget(QLabel("Final Depth:"))
+        layout.addWidget(self.cb_final_depth)
+        
+        
+        # Add the "Get Desurveyed CSV" button
+        self.btn_get_csv = QPushButton('Get Desurveyed CSV', self)
+        self.btn_get_csv.setStyleSheet("background-color: lightblue;")
+        self.btn_get_csv.clicked.connect(self.generate_csv)
+        layout.addWidget(self.btn_get_csv)
+
+        self.setLayout(layout)
+        
+    
+    def generate_csv(self):
+        print("generate_csv triggered!")
+        
+        result_data = self.calculate_desurveyed_data()
+
+        if not result_data.empty:
+            options = QFileDialog.Options()
+            filePath, _ = QFileDialog.getSaveFileName(self, "Save File", "", "CSV Files (*.csv);;All Files (*)", options=options)
+            
+            if filePath:
+                # Ensuring the file extension
+                if not filePath.endswith('.csv'):
+                    filePath += '.csv'
+                
+                result_data.to_csv(filePath, index=False)
+                QMessageBox.information(self, "Success", "Desurveyed data saved successfully!")
+            else:
+                QMessageBox.warning(self, "Cancelled", "Save operation was cancelled!")
+        else:
+            QMessageBox.warning(self, "Error", "Failed to generate desurveyed data!")
+            
+
+    def load_drill_data_csv(self):
+        fname, _ = QFileDialog.getOpenFileName(self, 'Open file', '/home')
+        if fname:
+            self.drill_data = pd.read_csv(fname)
+            self.update_combo_boxes(self.drill_data, [self.cb_hole_id, self.cb_from_depth, self.cb_to_depth])
+            
+    def load_survey_data_csv(self):
+        fname, _ = QFileDialog.getOpenFileName(self, 'Open file', '/home')
+        if fname:
+            self.survey_data = pd.read_csv(fname)
+            self.update_combo_boxes(self.survey_data, 
+                                    [self.cb_depth_sur, self.cb_azimuth, self.cb_dip, self.cb_survey_hole_id])
+
+    def load_collar_data_csv(self):
+        fname, _ = QFileDialog.getOpenFileName(self, 'Open file', '/home')
+        if fname:
+            self.collar_data = pd.read_csv(fname)
+            self.update_combo_boxes(self.collar_data, [self.cb_collar_hole_id, self.cb_easting, self.cb_northing, self.cb_elevation, self.cb_start_depth, self.cb_final_depth])
+            
+    def update_combo_boxes(self, data, combo_boxes):
+        columns = data.columns
+        for cb in combo_boxes:
+            cb.clear()
+            cb.addItems(columns)
+            
+    @staticmethod
+    def vlookup_approx(value, lookup_array, result_array):
+        """
+        try to emulate the behavior of VLOOKUP with TRUE flag for approximate match.
+        Return the closest value that is less than or equal to the lookup value.
+        If no match is found, return the last value in the result_array.
+        """
+        matches = [i for i, x in enumerate(lookup_array) if x <= value]
+        if matches:
+            index = matches[-1]
+            return result_array[index]
+        else:
+            return result_array[-1]  # Return the last value if no match is found
+            
+    def generate_correct_infill_rows(self, max_infill=25):
+        if self.drill_data is None:
+            print("Error: drill_data is not loaded.")
+            return None  # Early exit if drill_data is not loaded
+
+        all_result_rows = []  # To hold all rows including infill rows
+
+        unique_holes = self.drill_data[self.cb_hole_id.currentText()].unique()
+
+        for hole_id in unique_holes:
+            drill_data_filtered = self.drill_data[self.drill_data[self.cb_hole_id.currentText()] == hole_id]
+            print(f"Number of rows for hole_id {hole_id}: {len(drill_data_filtered)}")
+
+            start_depth = self.collar_data[self.collar_data[self.cb_collar_hole_id.currentText()] == hole_id][self.cb_start_depth.currentText()].iloc[0]
+            final_depth = self.collar_data[self.collar_data[self.cb_collar_hole_id.currentText()] == hole_id][self.cb_final_depth.currentText()].iloc[0]
+            
+            collar_matches = self.collar_data[self.collar_data[self.cb_collar_hole_id.currentText()] == hole_id]
+            print(f"Length of collar_matches for hole_id {hole_id}: {len(collar_matches)}")
+            if not collar_matches.empty:
+                start_depth = collar_matches[self.cb_start_depth.currentText()].iloc[0]
+                final_depth = collar_matches[self.cb_final_depth.currentText()].iloc[0]
+            else:
+                print(f"No collar data found for hole_id {hole_id}, skipping...")
+                continue
+
+            last_to_m = start_depth
+
+            for _, row in drill_data_filtered.iterrows():
+                from_depth_col = self.cb_from_depth.currentText()
+                to_depth_col = self.cb_to_depth.currentText()
+                
+
+                if row[from_depth_col] - last_to_m > 0:
+                    infill_from = last_to_m
+                    while infill_from < row[from_depth_col]:
+                        infill_to = min(infill_from + max_infill, row[from_depth_col])
+                        # Correctly use the column names for keys in infill_row
+                        infill_row = {'hole_id': hole_id, from_depth_col: infill_from, to_depth_col: infill_to}
+                        for col in drill_data_filtered.columns:
+                            if col not in [from_depth_col, to_depth_col, 'hole_id']:
+                                infill_row[col] = None  # Set default value for other columns
+                        all_result_rows.append(infill_row)
+                        infill_from = infill_to
+
+                # Add the existing row with potentially updated 'last_to_m' value
+                row_dict = row.to_dict()
+                row_dict['hole_id'] = hole_id
+                all_result_rows.append(row_dict)
+                last_to_m = row[to_depth_col]
+
+            # Infill after the last depth if needed
+            if last_to_m < final_depth:
+                print(f"Adding infill rows after the last recorded depth for hole_id {hole_id}")
+                infill_from = last_to_m
+                while infill_from < final_depth:
+                    infill_to = min(infill_from + max_infill, final_depth)
+                    # Correctly use the column names for keys in infill_row
+                    infill_row = {'hole_id': hole_id, from_depth_col: infill_from, to_depth_col: infill_to}
+                    for col in drill_data_filtered.columns:
+                        if col not in [from_depth_col, to_depth_col, 'hole_id']:
+                            infill_row[col] = None  # Set default value for other columns
+                    all_result_rows.append(infill_row)
+                    infill_from = infill_to
+
+        result_df = pd.DataFrame(all_result_rows)
+        
+        # Iterate over each unique hole ID to add a new row based on min from_depth
+        from_depth_col_drill = self.cb_from_depth.currentText()  # Dynamically get column name
+        to_depth_col_drill = self.cb_to_depth.currentText()  # Dynamically get column name
+
+        for hole_id in unique_holes:
+            hole_data = result_df[result_df['hole_id'] == hole_id]
+            if hole_data.empty:
+                continue
+
+            min_from_depth = hole_data[from_depth_col_drill].min()
+
+            # Converting new_row to a DataFrame before appending
+            new_row_df = pd.DataFrame([{
+                'hole_id': hole_id,
+                from_depth_col_drill: min_from_depth,
+                to_depth_col_drill: min_from_depth,
+                'x': np.nan, 'y': np.nan, 'z': np.nan
+            }])
+            
+            result_df = pd.concat([result_df, new_row_df], ignore_index=True)
+
+        result_df = result_df.sort_values(by=['hole_id', to_depth_col_drill]).reset_index(drop=True)
+
+        return result_df
+
+      
+    def calculate_desurveyed_data(self):
+        print("calculate_desurveyed_data function started")
+        # Generate the infill rows and get the updated drill data
+        result_df = self.generate_correct_infill_rows(max_infill=25)
+
+        # Assuming result_df contains the correct infill rows and you want to work with this updated data
+        self.drill_data = result_df
+
+        print(self.drill_data.columns)
+        print(self.survey_data.columns)
+        
+        
+        # Extracting data from the UI elements
+        hole_id_col_drill = self.cb_hole_id.currentText()
+        from_depth_col_drill = self.cb_from_depth.currentText()
+        to_depth_col_drill = self.cb_to_depth.currentText()
+       
+        hole_id_col_survey = self.cb_survey_hole_id.currentText()
+        depth_col_survey = self.cb_depth_sur.currentText()
+        azimuth_col_survey = self.cb_azimuth.currentText()
+        dip_col_survey = self.cb_dip.currentText()
+
+        hole_id_col_collar = self.cb_collar_hole_id.currentText()
+        easting_col_collar = self.cb_easting.currentText()
+        northing_col_collar = self.cb_northing.currentText()
+        elevation_col_collar = self.cb_elevation.currentText()
+        start_depth_collar = self.cb_start_depth.currentText()
+        final_depth_collar = self.cb_final_depth.currentText()
+        
+        self.drill_data['x'] = np.nan
+        self.drill_data['y'] = np.nan
+        self.drill_data['z'] = np.nan
+        
+        unique_holes = self.drill_data[hole_id_col_drill].unique()
+        print(f"Found {len(unique_holes)} unique hole IDs: {unique_holes}")
+        
+        # Assuming result_df is the DataFrame returned by generate_correct_infill_rows
+        result_df = self.generate_correct_infill_rows(max_infill=25)
+        
+        # Check for missing hole IDs in collar and survey data
+        missing_in_collar = set(unique_holes) - set(self.collar_data[hole_id_col_collar].unique())
+        missing_in_survey = set(unique_holes) - set(self.survey_data[hole_id_col_survey].unique())
+        if missing_in_collar or missing_in_survey:
+            missing_ids_message = "Missing hole IDs in collar data: {} and/or in survey data: {}.".format(
+                ", ".join(missing_in_collar), ", ".join(missing_in_survey))
+            QMessageBox.warning(self, "Error", missing_ids_message)
+            return
+        
+        try:
+            for hole_id in unique_holes:
+                # Filter collar, survey, and drill data by hole ID
+                collar_data_filtered = self.collar_data[self.collar_data[hole_id_col_collar] == hole_id]
+                survey_data_filtered = self.survey_data[self.survey_data[hole_id_col_survey] == hole_id]
+                
+                # use Result_df to filter drill data by hole_id
+                drill_data_filtered = result_df[result_df[hole_id_col_drill] == hole_id]
+                
+
+                # Identify the minimum depth value for this hole
+                min_depth = drill_data_filtered[to_depth_col_drill].min()
+
+                # Initial coordinates for each hole
+                prev_x = collar_data_filtered.iloc[0][easting_col_collar]
+                prev_y = collar_data_filtered.iloc[0][northing_col_collar]
+                prev_z = collar_data_filtered.iloc[0][elevation_col_collar]
+
+                # Populate the row corresponding to the minimum depth value with collar coordinates
+                idx_in_main_df = self.drill_data.index[(self.drill_data[hole_id_col_drill] == hole_id) & (self.drill_data[to_depth_col_drill] == min_depth)].tolist()[0]
+                self.drill_data.at[idx_in_main_df, 'x'] = prev_x
+                self.drill_data.at[idx_in_main_df, 'y'] = prev_y
+                self.drill_data.at[idx_in_main_df, 'z'] = prev_z
+            
+                # Initialize coordinates
+                prev_depth_F2 = min_depth
+                # Loop through drill data for the current hole
+                for index in range(len(drill_data_filtered)):
+                    next_row = drill_data_filtered.iloc[index]  
+                    depth_F3 = next_row[to_depth_col_drill]
+
+                    # Get values for depth using the vlookup approximation
+                    azimuth_F3 = self.vlookup_approx(depth_F3, survey_data_filtered[depth_col_survey].values, survey_data_filtered[azimuth_col_survey].values)
+                    dip_F3 = self.vlookup_approx(depth_F3, survey_data_filtered[depth_col_survey].values, survey_data_filtered[dip_col_survey].values)
+
+                    # Apply the calculation (geometric transformation) for x, y, z using the depth difference
+                    delta_x = (depth_F3 - prev_depth_F2) * np.sin(np.radians(azimuth_F3)) * np.cos(np.radians(dip_F3))
+                    delta_y = (depth_F3 - prev_depth_F2) * np.cos(np.radians(azimuth_F3)) * np.cos(np.radians(dip_F3))
+                    delta_z = (depth_F3 - prev_depth_F2) * np.sin(np.radians(dip_F3))
+
+                    # Cumulatively add the deltas to the previous coordinates
+                    new_x = prev_x + delta_x
+                    new_y = prev_y + delta_y
+                    new_z = prev_z + delta_z
+
+                    # Store these new values for the next iteration
+                    prev_x, prev_y, prev_z = new_x, new_y, new_z
+                    prev_depth_F2 = depth_F3  # Update depth for next iteration
+
+                    # Update the original DataFrame with new x, y, and z values
+                    idx_in_main_df = self.drill_data.index[(self.drill_data[hole_id_col_drill] == hole_id) & (self.drill_data[to_depth_col_drill] == depth_F3)].tolist()[0]
+                    self.drill_data.at[idx_in_main_df, 'x'] = new_x
+                    self.drill_data.at[idx_in_main_df, 'y'] = new_y
+                    self.drill_data.at[idx_in_main_df, 'z'] = new_z
+
+        except Exception as e:
+            # Convert the exception message to a string before concatenating
+            QMessageBox.warning(self, "Error", f"Failed to generate desurveyed data! Error: {str(e)}")
+            return self.drill_data
+
+        return self.drill_data
+        
+     
+        
              
 class PlotSettingsDialog(QDialog): # Settings window for cross section plot
     def __init__(
@@ -3665,8 +4065,10 @@ class CombinedPlotWindow(QtWidgets.QMainWindow): # Downline line plot and graphi
         self.save_button.setText("Save plot")
         self.save_button.clicked.connect(self.save_plot)
         
+        
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.save_button)
+        
 
         self.merge_plots()
         self.horizontal_lines = [ax.axhline(y=0, color='red') for ax in self.axs]  # Initial horizontal line at y=0 for each axis
@@ -4304,13 +4706,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         
     def open_desurvey_calc(self):
         try:
-            self.desurvey_dialog = DesurveyCalc(self)
-            result = self.desurvey_dialog.exec_()
-            
+            dialog = SelectionDialog(self)
+            result = dialog.exec_()
+
             if result == QDialog.Accepted:
-       
-                pass
-            
+                if dialog.choice == 'DesurveyCalc':
+                    self.desurvey_dialog = DesurveyCalc(self)
+                elif dialog.choice == 'ContinuousDesurveyCalc':
+                    self.desurvey_dialog = ContinuousDesurveyCalc(self)
+
+                # Now you can execute the chosen dialog
+                self.desurvey_dialog.exec_()
+
         except Exception as e:
             print("Error:", e)
         
@@ -5233,12 +5640,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         
         # If the user selected a file
         if fileName:
+            # Ensure the filename ends with .pkl
+            if not fileName.lower().endswith('.pkl'):
+                fileName += '.pkl'
+            
             self.current_save_file = fileName  # Update the current save file
-            self.update_window_title() # Update the window title
+            self.update_window_title()  # Update the window title
             self.save_state_to_file(fileName)  # Save the state of the application
             
             # Show message box after saving
             QMessageBox.information(self, "Save Successful", f"File saved as {fileName}")
+
 
     def save_state_to_file(self, file_name):
         # Get data from the models
@@ -5256,6 +5668,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         
 
     def open_state(self): # Open a saved project
+        self.DEM_data = None
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
@@ -5270,8 +5683,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                     self.selected_parameters, self.attributes_dict, \
                     hole_ids_lithology, hole_ids_geochem, hole_ids_structure, hole_ids_cross, attributes = loaded_data
                     self.DEM_loaded = False
-                    # You can set a default slider_state here if needed
-                    self.slider_state = "ft"  # or whatever default value you'd like
+                    # Set a default slider_state 
+                    self.slider_state = "ft"  
                 else:
                     self.data_lithology, self.data_geochem, self.data_structure, self.data_desurveyed, \
                     self.selected_parameters, self.attributes_dict, \
