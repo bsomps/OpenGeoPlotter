@@ -128,6 +128,7 @@ class ColumnSelectorDialog(QDialog): # Lithology parameters window
         self.to_depth_combo = QComboBox()
         self.to_depth_combo.addItems(df.columns)
         self.layout.addWidget(self.to_depth_combo)
+        
 
         # Lithology column changed
         self.lithology_combo.currentTextChanged.connect(self.lithology_column_changed)
@@ -237,6 +238,50 @@ class OrderDialog(QtWidgets.QDialog): # Change order for grpahic log window
 
     def get_order(self):
         return [combobox.currentText() for combobox in self.comboboxes]
+        
+class LegendWindow(QtWidgets.QWidget):
+    def __init__(self, parameters, parent=None):
+        super().__init__(parent)
+        self.parameters = parameters
+        self.initUI()
+
+    def initUI(self):
+        layout = QtWidgets.QVBoxLayout()
+        for lithology, color in self.parameters['colors'].items():
+            color_label = QtWidgets.QLabel()
+            color_label.setFixedSize(20, 20)
+            color_label.setStyleSheet(f"background-color: {color}; border: 1px solid black;")
+            
+            lithology_label = QtWidgets.QLabel(f"{lithology}")
+            
+            row_layout = QtWidgets.QHBoxLayout()
+            row_layout.addWidget(color_label)
+            row_layout.addWidget(lithology_label)
+            
+            layout.addLayout(row_layout)
+        
+        self.setLayout(layout)
+        self.setWindowTitle("Lithology Legend")
+        self.resize(200, 400)
+        
+class ElevationDialog(QtWidgets.QDialog):
+    def __init__(self, column_names, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Select Elevation Column")
+        layout = QtWidgets.QVBoxLayout(self)
+        
+        self.comboBox = QtWidgets.QComboBox()
+        self.comboBox.addItems(column_names)
+        layout.addWidget(self.comboBox)
+        
+        selectButton = QtWidgets.QPushButton("Select")
+        selectButton.clicked.connect(self.accept)
+        layout.addWidget(selectButton)
+        
+        self.setLayout(layout)
+    
+    def selected_column(self):
+        return self.comboBox.currentText()
 
 
 class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
@@ -244,76 +289,116 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
         super().__init__()
         
         self.setWindowModality(QtCore.Qt.NonModal)
-       
-        self.data = data # Store lithology column
+
+        self.data = data  # Store lithology column
         self.hole_ids = hole_ids  # Store the list of hole IDs
         self.parameters = parameters  # Store the selected parameters
         self.figure = Figure(figsize=(8, 12))
         self.canvas = FigureCanvas(self.figure)
-        self.setCentralWidget(self.canvas)
         self.lith_depth_unit = initial_unit
         self.main_window_reference = parent
+
+        # Create buttons
+        self.display_legend_button = QtWidgets.QPushButton("Display Legend")
+        self.display_legend_button.clicked.connect(self.display_legend)
+
         
-        
-        self.save_button = QtWidgets.QPushButton(self)
-        self.save_button.setText("Save plot")
-        self.save_button.clicked.connect(self.save_plot)
-        
-        self.change_order_button = QtWidgets.QPushButton("Change Order", self)
-        self.change_order_button.clicked.connect(self.change_order)
+        self.use_elevation_button = QtWidgets.QPushButton("Use Elevation")
+        self.use_elevation_button.clicked.connect(self.use_elevation)
         
 
-        # Set the layout
+        self.change_order_button = QtWidgets.QPushButton("Change Order")
+        self.change_order_button.clicked.connect(self.change_order)
+
+        self.save_button = QtWidgets.QPushButton("Save Plot")
+        self.save_button.clicked.connect(self.save_plot)
+
+        # Create a horizontal layout for the buttons
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addWidget(self.display_legend_button)
+        button_layout.addWidget(self.use_elevation_button)
+        button_layout.addWidget(self.change_order_button)
+        button_layout.addWidget(self.save_button)
+
+        # Set the main layout
         layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.change_order_button)
-        layout.addWidget(self.save_button) 
-        layout.addWidget(self.canvas)
+        layout.addLayout(button_layout)  # Add the horizontal layout of buttons at the top
+        layout.addWidget(self.canvas)  # Add the canvas below the buttons
+
+        # Create a central widget, set the layout, and make it the central widget of the window
         widget = QtWidgets.QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
-        
-        # Set the size
+
+        # Adjust the window size
         base_width = 500
-        max_width = 2000  
+        max_width = 2000
         required_width = base_width * len(hole_ids)
         final_width = min(required_width, max_width)
         self.resize(final_width, 1200)
-        self.create_graphic_log()
 
+        self.create_graphic_log()
         
+    def use_elevation(self):
+        column_names = list(self.data.columns)  
+        dialog = ElevationDialog(column_names, self)
+        if dialog.exec_():
+            elevation_column = dialog.selected_column()
+            self.calculate_and_apply_elevation_offsets(elevation_column)
+            self.create_graphic_log()  # Recreate the graphic log with elevation adjustments
+
+            
+    def calculate_and_apply_elevation_offsets(self, elevation_column):
+        # Extract elevation data for the selected holes
+        elevation_data = self.data[self.data['hole_id'].isin(self.hole_ids)].groupby('hole_id')[elevation_column].max()
+        highest_elevation = elevation_data.max()
+        
+        # Calculate offsets using the correct method to iterate over Series objects
+        self.elevation_offsets = {hole_id: highest_elevation - elevation for hole_id, elevation in elevation_data.items()}
+
+
+
+
     def updateLithDepthUnit(self, value): # Choose m of ft
         
         self.lith_depth_unit = "ft" if value == 0 else "m" # Meter to ft slider
         
    
-    def create_graphic_log(self): # Function to create graphic log
-    
-        # Clear Prevoius figure
+    def create_graphic_log(self):  # Function to create graphic log
+        # Clear Previous figure
         self.figure.clear()
+        
+        # Check if elevation offsets are available
+        elevation_offsets_available = hasattr(self, 'elevation_offsets')
         
         # Compute the maximum depth across all selected hole_ids
         max_depth = self.data[self.data['hole_id'].isin(self.hole_ids)][self.parameters['to_column']].max()
         
+        # Adjust for elevation offsets if available
+        if elevation_offsets_available:
+            max_elevation_offset = max(self.elevation_offsets.values())
+            max_depth += max_elevation_offset
+        
         num_holes = len(self.hole_ids)
         
-        # Find hole_id and depth columns
         for idx, hole_id in enumerate(self.hole_ids):
             hole_data = self.data[self.data['hole_id'] == hole_id]
             ax = self.figure.add_subplot(1, num_holes, idx+1)
             
-            if len(self.hole_ids) == 1:
-                hole_min_depth = hole_data[self.parameters['from_column']].min()
-                ax.set_ylim(hole_data[self.parameters['to_column']].max(), hole_min_depth)
-
-            else:
-                ax.set_ylim(max_depth, 0)
-                
+            # Apply elevation offset if available
+            elevation_offset = self.elevation_offsets[hole_id] if elevation_offsets_available else 0
             
-            if idx == 0:
-                ax.set_ylabel(f'Depth ({self.lith_depth_unit})')  # only label y-axis for the leftmost plot
+            for _, row in hole_data.iterrows():
+                from_depth = row[self.parameters['from_column']] - elevation_offset
+                to_depth = row[self.parameters['to_column']] - elevation_offset
+                # Rest of the plotting logic remains the same, using adjusted from_depth and to_depth
 
+            # Adjust y-axis limits based on elevation offset
+            if len(self.hole_ids) == 1:
+                hole_min_depth = min(hole_data[self.parameters['from_column']] - elevation_offset)
+                ax.set_ylim((max_depth - elevation_offset), hole_min_depth)
             else:
-                ax.set_ylabel('')  # remove y-axis tick labels for other plots
+                ax.set_ylim(max_depth - elevation_offset, 0 - elevation_offset)
                 
             self.figure.subplots_adjust(left=0.15, wspace=0.45)
             
@@ -397,14 +482,26 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
         file_name, _ = QFileDialog.getSaveFileName(self, "Save Plot", "", "All Files (*);;JPEG (*.jpeg);;PNG (*.png);;SVG (*.svg)", options=options)
         if file_name:
             self.figure.savefig(file_name, dpi=200)
+            
+    def display_legend(self):
+        # Check if a legend window already exists and is visible; if so, bring it to the front
+        if hasattr(self, 'legendWindow') and self.legendWindow.isVisible():
+            self.legendWindow.raise_()
+            self.legendWindow.activateWindow()
+        else:
+            # Create a new legend window
+            self.legendWindow = LegendWindow(self.parameters)
+            self.legendWindow.show()
 
-    
+        def closeEvent(self, event):
+            if self in self.main_window_reference.plot_windows:
+                self.main_window_reference.plot_windows.remove(self)
+            event.accept()  # window close
+
     def closeEvent(self, event):
         if self in self.main_window_reference.plot_windows:
             self.main_window_reference.plot_windows.remove(self)
         event.accept()  # window close
-
-
 
 class DownholePlotWindow(QtWidgets.QMainWindow):  # Plot window for downhole geochem
     def __init__(self, main_window, data, hole_id, column_data, column_name, depth_column, plot_bars=False):
@@ -421,24 +518,27 @@ class DownholePlotWindow(QtWidgets.QMainWindow):  # Plot window for downhole geo
         self.plot_bars = plot_bars
         self.figure = Figure(figsize=(8, 12))
         self.canvas = FigureCanvas(self.figure)
-        self.setCentralWidget(self.canvas)
         
-        self.save_button = QtWidgets.QPushButton(self)
-        self.save_button.setText("Save plot")
-        self.save_button.clicked.connect(self.save_plot)
+        
+       
+        self.toolbar = NavigationToolbar(self.canvas, self)
+        
+        
         self.depth_column = depth_column  # Save depth column
         self.geochem_depth_unit = "ft"  # Default to feet
 
         # Set the layout
         layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.save_button)  
+        
+        layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)
+        
         widget = QtWidgets.QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
         
-        self.resize(400, 1100)
-        self.setGeometry(0, 0, 400, 1100)
+        self.resize(400, 1000)
+        self.setGeometry(0, 0, 400, 1000)
         self.plot()
         
     def updategeochemDepthUnit(self, value):
@@ -505,12 +605,6 @@ class DownholePlotWindow(QtWidgets.QMainWindow):  # Plot window for downhole geo
         self.ax.set_title(f"Hole ID: {self.hole_id}")
        
         
-    def save_plot(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        file_name, _ = QFileDialog.getSaveFileName(self,"Save Plot","","All Files (*);;JPEG (*.jpeg);;PNG (*.png)", options=options)
-        if file_name:
-            self.figure.savefig(file_name)
 
         
 class CorrelationMatrixWindow(QtWidgets.QMainWindow): # window for correlation matrix
@@ -634,7 +728,7 @@ class ColumnSelectionDialog(QtWidgets.QDialog, Ui_ColumnSelectionDialog): # Wind
 
 class CrossSection(QDialog): # Cross section window
     MAX_BAR_LENGTH = 50 # for auxiliary bar plot
-    def __init__(self, data, hole_ids, azimuth, attribute_column=None, attributes_model=None, attributes_dict=None, DEM_data=None, remove_outliers=True, remove_outliers_auxiliary=True, checkbox_add_grid_lines=True, checkbox_add_change_tick=True, upper_quantile=75.0, lower_quantile=25.0, IQR=3.0, x_buffer=120.0, y_buffer=0.05, line_width=4, selected_hole_ids_for_labels=None):
+    def __init__(self, data, hole_ids, azimuth, attribute_column=None, attributes_model=None, attributes_dict=None, DEM_data=None, remove_outliers=True, remove_outliers_auxiliary=True, checkbox_add_grid_lines=True, checkbox_add_change_tick=True, upper_quantile=75.0, lower_quantile=25.0, IQR=3.0, x_buffer=120.0, y_buffer=0.05, line_width=3, selected_hole_ids_for_labels=None):
         super().__init__()
         print(selected_hole_ids_for_labels)  
 
@@ -694,6 +788,8 @@ class CrossSection(QDialog): # Cross section window
         self.use_user_defined_grid = False
         self.filtered_grid_points = None
         self.y_axis_scale_factor = 1
+        self.selected_hole_id_for_topo = None
+
         
         
         
@@ -904,6 +1000,12 @@ class CrossSection(QDialog): # Cross section window
         offset_label = QLabel("Topo Line Offset: Postive values to move up, negative values to move down")
         offset_input = QLineEdit()
         offset_input.setText("0")  # Set the default value to 0
+        
+        # Dropdown for selecting the hole ID
+        hole_id_label = QLabel("Draw Topo Line from:")
+        hole_id_dropdown = QComboBox()
+        
+        hole_id_dropdown.addItems(["Select a Hole ID"] + self.hole_ids)
 
         # OK and Cancel buttons
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -917,6 +1019,8 @@ class CrossSection(QDialog): # Cross section window
         layout.addWidget(remove_topo_and_sky_checkbox)
         layout.addWidget(offset_label)
         layout.addWidget(offset_input)
+        layout.addWidget(hole_id_label)
+        layout.addWidget(hole_id_dropdown)
         layout.addWidget(buttons)
 
         result = dialog.exec_()
@@ -940,6 +1044,14 @@ class CrossSection(QDialog): # Cross section window
                 self.generate_contours_flag = False
             except ValueError:
                 QMessageBox.warning(self, "Invalid Input", "Please enter a valid number.")
+                
+                
+            # Get selected hole ID for topo line drawing
+            selected_hole_id = hole_id_dropdown.currentText()
+            if selected_hole_id and selected_hole_id != "Select a Hole ID":
+                self.selected_hole_id_for_topo = selected_hole_id
+            else:
+                self.selected_hole_id_for_topo = None
 
             self.plot()  # Replot with the new settings
 
@@ -1438,12 +1550,15 @@ class CrossSection(QDialog): # Cross section window
         return profile
         
         
-    def create_profile_line(self, hole_ids, azimuth, max_z, min_x=None, max_x=None):
+    def create_profile_line(self, hole_ids, azimuth, max_z, specific_hole_id=None, min_x=None, max_x=None):
     
         self.calculate_coordinates()
         
-        # Filter the sheet by hole_ids
-        filtered_df = self.data[self.data['hole_id'].isin(hole_ids)]
+        # If a specific hole ID is provided, filter the sheet by that hole ID
+        if specific_hole_id:
+            filtered_df = self.data[self.data['hole_id'] == specific_hole_id]
+        else:
+            filtered_df = self.data[self.data['hole_id'].isin(hole_ids)]
         
         # Find the row with the maximum z value
         max_z_row = filtered_df.loc[filtered_df['z'].idxmax()]
@@ -1681,6 +1796,7 @@ class CrossSection(QDialog): # Cross section window
         self.calculate_coordinates()
         self.figure.clear()  # Clear the entire figure
         ax = self.figure.add_subplot(111)
+        
         
         
         # Re-add the pencil drawings if there
@@ -2044,10 +2160,10 @@ class CrossSection(QDialog): # Cross section window
                 legend_elements = []
                 for val, attributes in self.attributes_dict[self.attribute_column].items():
                     if attributes['line_width'] != 0:
-                        legend_element = Line2D([0], [0], color=attributes['color'], lw=4, label=val)
+                        legend_element = Line2D([0], [0], color=attributes['color'], lw=3, label=val)
                         legend_elements.append(legend_element)
             else:
-                legend_elements = [Line2D([0], [0], color=color_dict[val], lw=4, label=val) for val in color_dict]
+                legend_elements = [Line2D([0], [0], color=color_dict[val], lw=3, label=val) for val in color_dict]
             
             if legend_elements:  # Only add the legend if there are any elements to show
                 ax.legend(handles=legend_elements, loc='center left', bbox_to_anchor=(1, 0.6))
@@ -2155,8 +2271,8 @@ class CrossSection(QDialog): # Cross section window
             if self.DEM_loaded:
                 print("DEM_loaded is True. Proceeding with topographic profile plotting.")
 
-                # Create the profile line using the new version of create_profile_line
-                start_point, end_point = self.create_profile_line(self.hole_ids, self.azimuth, self.max_z)
+                # Create the profile line using create_profile_line
+                start_point, end_point = self.create_profile_line(self.hole_ids, self.azimuth, self.max_z, specific_hole_id=self.selected_hole_id_for_topo)
 
                 # Transform these to plotting coordinates
                 transformed_start_point = self.transform_coordinates(*start_point)
@@ -2453,7 +2569,7 @@ class ManageAttributesDialog(QDialog): # attribute manager button for cross sect
 
                 color_button = QPushButton("Choose color")
                 line_width_spin_box = QDoubleSpinBox()
-                line_width_spin_box.setValue(4.0)
+                line_width_spin_box.setValue(3.0)
 
                 sub_layout.addWidget(QLabel(str(value)))
                 sub_layout.addWidget(color_button)
@@ -3751,7 +3867,7 @@ class ContinuousDesurveyCalc(QDialog): # Misnamed should be "non-continuous"
         # Generate the infill rows and get the updated drill data
         result_df = self.generate_correct_infill_rows(max_infill=25)
 
-        # Assuming result_df contains the correct infill rows and you want to work with this updated data
+        
         self.drill_data = result_df
 
         print(self.drill_data.columns)
@@ -3782,7 +3898,7 @@ class ContinuousDesurveyCalc(QDialog): # Misnamed should be "non-continuous"
         unique_holes = self.drill_data[hole_id_col_drill].unique()
         print(f"Found {len(unique_holes)} unique hole IDs: {unique_holes}")
         
-        # Assuming result_df is the DataFrame returned by generate_correct_infill_rows
+        
         result_df = self.generate_correct_infill_rows(max_infill=25)
         
         # Check for missing hole IDs in collar and survey data
@@ -3863,7 +3979,7 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
     def __init__(
         self, hole_ids, remove_outliers=True, remove_outliers_auxiliary=False,
         add_grid_lines=False, upper_quantile=75, lower_quantile=25, IQR=3,
-        x_buffer=120, y_buffer=0.05, line_width=4, selected_hole_ids_for_labels=None
+        x_buffer=120, y_buffer=0.05, line_width=3, selected_hole_ids_for_labels=None
     ):
         super(PlotSettingsDialog, self).__init__()
         self.hole_ids = hole_ids
@@ -3993,7 +4109,7 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
                       IQR=3,
                       x_buffer=120,
                       y_buffer=0.05,
-                      line_width=4,
+                      line_width=3,
                       selected_hole_ids_for_labels=None):
         # Set defaults or use passed-in settings
         self.checkbox_remove_outliers.setChecked(remove_outliers)
@@ -4047,31 +4163,53 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
         self.line_edit_IQR.setEnabled(checked)
 
 
-class CombinedPlotWindow(QtWidgets.QMainWindow): # Downline line plot and graphic plot merge
+class CombinedPlotWindow(QtWidgets.QMainWindow):
     def __init__(self, main_window, plot_windows, geochem_plot_windows):
         super().__init__()
         self.setWindowModality(QtCore.Qt.NonModal)
         
         self.figure = Figure(figsize=(15, 12))
         self.canvas = FigureCanvas(self.figure)
-        self.setCentralWidget(self.canvas)
-        self.main_window = main_window
+        self.canvas.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.canvas.updateGeometry()
+
+        # Create the navigation toolbar
+        self.toolbar = NavigationToolbar(self.canvas, self)
+
+        # Create the "Display Legend" button
+        self.display_legend_button = QtWidgets.QPushButton("Display Legend", self)
+        self.display_legend_button.clicked.connect(self.display_legend)
         
+        # Create the "change order" button
+        self.changeOrder_button = QtWidgets.QPushButton("Change Order", self)
+        self.changeOrder_button.clicked.connect(self.changeOrder)
+        
+        # Create a horizontal layout for the toolbar and the "Display Legend" button
+        top_layout = QtWidgets.QHBoxLayout()
+        top_layout.addWidget(self.toolbar)
+        top_layout.addWidget(self.display_legend_button)
+        top_layout.addWidget(self.changeOrder_button)
+        top_layout.addStretch(1)  # This will push the toolbar and button to the left
+
+        # Create a vertical layout with minimal margins and spacing
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)  # Reduce the margins to utilize maximum space
+        layout.setSpacing(0)  # Reduce spacing between widgets
+        layout.addLayout(top_layout)  # Add the horizontal layout containing the toolbar and button
+        layout.addWidget(self.canvas)  # Add the canvas to the layout
+        
+        # Create a central widget and set the layout
+        centralWidget = QtWidgets.QWidget()
+        centralWidget.setLayout(layout)
+        self.setCentralWidget(centralWidget)
+
         self.main_window = main_window
         self.plot_windows = plot_windows
         self.geochem_plot_windows = geochem_plot_windows
-        
-        self.save_button = QtWidgets.QPushButton(self)
-        self.save_button.setText("Save plot")
-        self.save_button.clicked.connect(self.save_plot)
-        
-        
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.save_button)
-        
 
+        # Method calls for plotting
         self.merge_plots()
-        self.horizontal_lines = [ax.axhline(y=0, color='red') for ax in self.axs]  # Initial horizontal line at y=0 for each axis
+        self.horizontal_lines = [ax.axhline(y=0, color='red') for ax in self.axs]
         self.figure.canvas.mpl_connect('button_press_event', self.on_click)
         self.canvas.draw()
         self.show()
@@ -4184,6 +4322,49 @@ class CombinedPlotWindow(QtWidgets.QMainWindow): # Downline line plot and graphi
             ax.set_ylim(global_max_depth, global_min_depth)
             ax.invert_yaxis()
 
+    def display_legend(self):
+        
+        if self.plot_windows:  # Check if there are any plot windows
+            parameters = self.plot_windows[0].parameters  # Use parameters from the first plot window
+        elif self.geochem_plot_windows:  # If no standard plot windows, check geochem plot windows
+            parameters = next(iter(self.geochem_plot_windows.values())).parameters  # Use parameters from the first geochem plot window
+        else:
+            # Handle the case where there are no windows to source parameters from
+            # This could be a message to the user or some default action
+            return
+
+        # Proceed to display the legend as before
+        if hasattr(self, 'legendWindow') and self.legendWindow.isVisible():
+            self.legendWindow.raise_()
+            self.legendWindow.activateWindow()
+        else:
+            self.legendWindow = LegendWindow(parameters)
+            self.legendWindow.show()
+            
+        def closeEvent(self, event):
+            self.main_window.combined_plot_window = None
+            event.accept() 
+
+    def changeOrder(self):
+        # Extract keys (or IDs) for geochem plots to display in the order dialog
+        geochem_keys = list(self.geochem_plot_windows.keys())
+
+        dialog = OrderDialog(geochem_keys, self)
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            new_order = dialog.get_order()
+            self.update_geochem_plot_order(new_order)
+            self.recreate_merged_plot()
+            
+    def recreate_merged_plot(self):
+        self.figure.clear()  # Clear the existing figure
+        # Recreate the plots with the new order
+        self.merge_plots()
+        self.canvas.draw() 
+            
+    def update_geochem_plot_order(self, new_order):
+        # Reorder self.geochem_plot_windows according to new_order
+        new_geochem_plot_windows = {key: self.geochem_plot_windows[key] for key in new_order}
+        self.geochem_plot_windows = new_geochem_plot_windows
 
     def closeEvent(self, event):
         self.main_window.combined_plot_window = None
@@ -4438,7 +4619,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         self.x_buffer = 120.0
         self.y_buffer = 0.05
         
-        self.line_width = 4
+        self.line_width = 3
         
         self.selected_hole_ids_for_labels = [self.model_cross.item(row).text() for row in range(self.model_cross.rowCount())]
         
@@ -4657,7 +4838,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                 self.y_buffer = float(y_buffer_text) if y_buffer_text else 0.05  # default value
                 
                 line_width_text = plot_settings_dialog.line_edit_line_width.text()
-                self.line_width = float(line_width_text) if line_width_text else 4.0  # default value
+                self.line_width = float(line_width_text) if line_width_text else 3.0  # default value
                 self.line_width = max(1.0, min(self.line_width, 5.0))  # Limit between 1 and 5
               
                 self.selected_hole_ids_for_labels = plot_settings_dialog.get_selected_hole_ids()
@@ -5290,9 +5471,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                 
         if selected_attribute and column_type != 'continuous':
             if selected_attribute in self.attributes_dict:
-                legend_elements = [Line2D([0], [0], color=self.attributes_dict[selected_attribute][val]['color'], lw=4, label=val) for val in self.attributes_dict[selected_attribute]]
+                legend_elements = [Line2D([0], [0], color=self.attributes_dict[selected_attribute][val]['color'], lw=3, label=val) for val in self.attributes_dict[selected_attribute]]
             elif color_dict is not None:
-                legend_elements = [Line2D([0], [0], color=color_dict[val], lw=4, label=val) for val in color_dict.keys()]
+                legend_elements = [Line2D([0], [0], color=color_dict[val], lw=3, label=val) for val in color_dict.keys()]
             ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(-0.7, 0.5))
             
         plt.get_current_fig_manager().window.showMaximized()
