@@ -1933,7 +1933,7 @@ class CrossSection(QDialog): # Cross section window
         
         # Drill hole plotting
         for hole_id in self.hole_ids:
-            hole_data = self.data[self.data['hole_id'] == hole_id].sort_values('z')
+            hole_data = self.data[self.data['hole_id'] == hole_id].sort_values('z', ascending=False)
             if hole_data.empty:
                 continue
 
