@@ -7,7 +7,7 @@ Install requirements via requirments.txt --- "pip install -r requirements.txt "
 Run the main script (OGP_v11.py) from the directory hosting the 'master' branch files. --- "python OGP_v11.py"
 
 
-# **APPLICATION USE INSTRUCTIONS**
+# **Application Use Instructions**
 
 **IMPORTANT NOTE FOR DATA IMPORT**  All CSV’s must contain a column header titled “hole_id”. This is what populates your selection boxes. Any desurveyed data must contain columns “x”, “y” and “z” matching exactly, no uppercase.
 
