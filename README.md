@@ -1,5 +1,5 @@
 
-*** Installation Instructions ***
+# **Installation Instructions**
 
 Requires Python version 3.11.
 Download all files from 'master' branch.
@@ -7,9 +7,9 @@ Install requirements via requirments.txt --- "pip install -r requirements.txt "
 Run the main script (OGP_v11.py) from the directory hosting the 'master' branch files. --- "python OGP_v11.py"
 
 
-*** APPLICATION USE INSTRUCTIONS ***
+# **APPLICATION USE INSTRUCTIONS**
 
-** IMPORTANT NOTE FOR DATA IMPORT**  All CSV’s must contain a column header titled “hole_id”. This is what populates your selection boxes. Any desurveyed data must contain columns “x”, “y” and “z” matching exactly, no uppercase.
+**IMPORTANT NOTE FOR DATA IMPORT**  All CSV’s must contain a column header titled “hole_id”. This is what populates your selection boxes. Any desurveyed data must contain columns “x”, “y” and “z” matching exactly, no uppercase.
 
 This application is designed to import, process, and visualize geological drill hole data. The application uses a graphical user interface built with PyQt5, a Python binding for the Qt application framework.
 
