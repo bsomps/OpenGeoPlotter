@@ -78,45 +78,45 @@ You will need three CSV’s to desurvey your data. 1) A collar table 2) A survey
 
  To use this tool, you will need to follow these steps:
 
-Load the data: Ensure it is formatted correctly with the necessary x, y, z coordinates, and the hole identifiers. Optionally, you can also have attribute columns, which are useful for representing different geological features. 
+- Load the data: Ensure it is formatted correctly with the necessary x, y, z coordinates, and the hole identifiers. Optionally, you can also have attribute columns, which are useful for representing different geological features. 
 
-Select the holes: You can choose as many drill holes as you'd like to include in your cross-section. This is done by providing the identifiers of the holes you're interested in.
+- Select the holes: You can choose as many drill holes as you'd like to include in your cross-section. This is done by providing the identifiers of the holes you're interested in.
 
-Set the azimuth: The azimuth represents the direction you are viewing. So if you set your azimuth to 0 or 360, you are viewing north and your cross section line runs east-west This can be any angle between 0 and 360 degrees.
+- Set the azimuth: The azimuth represents the direction you are viewing. So if you set your azimuth to 0 or 360, you are viewing north and your cross section line runs east-west This can be any angle between 0 and 360 degrees.
 
-Choose an attribute (optional): If your data includes attribute columns, you can choose one to visualize on the cross-section. This can represent both categorical and continuous (numerical) data.
+- Choose an attribute (optional): If your data includes attribute columns, you can choose one to visualize on the cross-section. This can represent both categorical and continuous (numerical) data.
 
- For numerical attributes, the tool will represent each value on a color gradient scale, with the option to remove outliers from the color coding for better visibility. The range of the color scale will be adjusted automatically based on the minimum and maximum values in your data.
+- For numerical attributes, the tool will represent each value on a color gradient scale, with the option to remove outliers from the color coding for better visibility. The range of the color scale will be adjusted automatically based on the minimum and maximum values in your data.
 
- For categorical attributes, you will have the option to specify a color and a line width for each unique value in the attribute column. If not specified, the tool will automatically assign different colors to each unique value.
+- For categorical attributes, you will have the option to specify a color and a line width for each unique value in the attribute column. If not specified, the tool will automatically assign different colors to each unique value.
 
-Visualize the data: After setting up your parameters, the tool will generate a 2D cross-section of your drill hole data. Each hole is represented as a line, with the attribute values (if chosen) represented by the color of the line.
+- Visualize the data: After setting up your parameters, the tool will generate a 2D cross-section of your drill hole data. Each hole is represented as a line, with the attribute values (if chosen) represented by the color of the line.
 
-Once the selected hole and parameters are set you can click "view in 3d" for a 3d visualization.
+- Once the selected hole and parameters are set you can click "view in 3d" for a 3d visualization.
    	  
-Each time you generate a plot, a new window will open with the plot. The window includes navigation controls for zooming and panning the plot.
+- Each time you generate a plot, a new window will open with the plot. The window includes navigation controls for zooming and panning the plot.
 
-Setting up a DEM for topo line
+### Setting up a DEM for topo line
 
 After clicking the "Upload DEM" button you will be prompted to select a DEM (.TIF) from your local files. Make sure that your DEM was exported in the same coordinate system as your desurveyed data. Make sure that the DEM is large enough to cover your project area and a bit extra as a buffer. The extrapolated topo line will be drawn using your highest Z value (the drill hole that originates at the highest elevation) and extened outwards in either direction based on the user's viewing azimuth. 
 
-Plot Settings
+### Plot Settings
 
 Outlier Handling: Users can opt to remove outliers from the color ramp through the 'Remove Outliers' checkbox. If selected, outliers can be defined based on upper and lower quantiles and an Interquartile Range (IQR) scaling factor, which the user can input. The IQR scaling factor determines how the data is shown on the color ramp, if you have a low scaling factor (1.5), the data will display as more closely clustered around the median, with a tighter range for identifying outliers. This means that the plot may show more data points as outliers, potentially leading to a more conservative representation of the central trend in the data. iIf you have a high scaling factor (10), the data will display as more spread out, with a broader range for identifying outliers. This results in fewer data points being classified as outliers, highlighting only the most extreme variations. Additionally, there's an option to apply these outlier settings to an auxiliary bar plot as well.
 
-Axis Limits and Grid Lines: The dialog allows users to set buffers for the x and y axes, effectively controlling the margins around the plotted data. Users can also add grid lines to the plot for better readability and structure, using the 'Add Grid Lines' checkbox.
+- Axis Limits and Grid Lines: The dialog allows users to set buffers for the x and y axes, effectively controlling the margins around the plotted data. Users can also add grid lines to the plot for better readability and structure, using the 'Add Grid Lines' checkbox.
 
-Visual Customization: Line width for the plot can be adjusted via a text input, giving users control over the thickness of the plot lines for visual clarity. (1-5)
+- Visual Customization: Line width for the plot can be adjusted via a text input, giving users control over the thickness of the plot lines for visual clarity. (1-5)
 
-Labeling and Selection of Data Points: Users can select or deselect which hole ids are visible on the plot, and an additional option allows for quick 'Select All' or 'Deselect All' functionality.
+- Labeling and Selection of Data Points: Users can select or deselect which hole ids are visible on the plot, and an additional option allows for quick 'Select All' or 'Deselect All' functionality.
 
 
 Once the cross section window is open, you will have several tools available to supplement the plot, these include:
 	
-Topo Line Settings: adjust the height of the topo line (positive for up, negative for down) the values represent meters. Choose a color for sky, or opt for no color.
-Hover Tool: This allows you to select a column in your dataset, then hover over a location on the plot to display the value in a text box. 
-Change to Plan View: changes to plan view while retaining the plot's attributes. North is always up. 
-Add overlay image: adds an image to the lowest z-order in the plot. The image can be scaled using the following commands 
+- Topo Line Settings: adjust the height of the topo line (positive for up, negative for down) the values represent meters. Choose a color for sky, or opt for no color.
+- Hover Tool: This allows you to select a column in your dataset, then hover over a location on the plot to display the value in a text box. 
+- Change to Plan View: changes to plan view while retaining the plot's attributes. North is always up. 
+- Add overlay image: adds an image to the lowest z-order in the plot. The image can be scaled using the following commands 
 
 event.key == '=': # Scale uniform bigger
 event.key == '-': # Scale uniform smaller
@@ -130,62 +130,49 @@ event.key == 'k':  # Scale bottom side down
 event.key == 's':  # Scale bottom side up
 event.key == 'backspace':  # Delete overlay image
 
-Auxiliary bar plot: this plots bars alongside the drill hole data normalized to a certain length. Choose an attribute to plot bars and wait for the bars to render. Bar plot uses only numerical data. Bar plot lengths can be further normalized through the plot settings window.
-Interpolate Contours (RBF): A Radial Basis Function (RBF) is a mathematical function used primarily for interpolation, where its value depends only on the distance from a central point. It's unique because it maintains radial symmetry, meaning its output is the same in all directions from the center. You will be prompted to set your normalization, and generate the contours. 
+- Auxiliary bar plot: this plots bars alongside the drill hole data normalized to a certain length. Choose an attribute to plot bars and wait for the bars to render. Bar plot uses only numerical data. Bar plot lengths can be further normalized through the plot settings window.
+- Interpolate Contours (RBF): A Radial Basis Function (RBF) is a mathematical function used primarily for interpolation, where its value depends only on the distance from a central point. It's unique because it maintains radial symmetry, meaning its output is the same in all directions from the center. You will be prompted to set your normalization, and generate the contours. 
 
 
 
-FACTOR ANALYSIS
+## FACTOR ANALYSIS
     
-The Factor Analysis tool allows you to analyze your data using the statistical method of Factor Analysis. To use this tool, follow these steps:
+The Factor Analysis tool allows you to analyze your data using the statistical method of Factor Analysis. To use this tool, follow these steps: 
 
-Specify the number of factors: Choose how many factors you want the analysis to consider, anywhere from 1 to 10.
+- Specify the number of factors: Choose how many factors you want the analysis to consider, anywhere from 1 to 10.
 
-Provide a column ending tag: Enter the ending tag that is common to the columns of data you want to include in the factor analysis.
+- Provide a column ending tag: Enter the ending tag that is common to the columns of data you want to include in the factor analysis.
 
-Opt for Factor Scores: Check the box if you want to calculate factor scores in the analysis.
+- Opt for Factor Scores: Check the box if you want to calculate factor scores in the analysis.
 
-Select the holes for the analysis: The tool will allow you to select the specific drill holes you want to include in the analysis.
+- Select the holes for the analysis: The tool will allow you to select the specific drill holes you want to include in the analysis.
 
-Run the analysis: Click on the "Run Factor Analysis" button to start the analysis.
+- Run the analysis: Click on the "Run Factor Analysis" button to start the analysis. If no holes or no matching columns are selected, the tool will prompt you with a warning and stop the analysis. If the selected data is valid, it scales the data and runs a Factor Analysis. It will determine the factor loadings and variance, and variables for each factor. The tool will then prepare a results dataframe that includes the factor loadings and the variance for each factor, the variables for each factor, and the selected hole IDs. If you opted for Factor Scores, the tool will calculate them, add them to the original dataset, and offer you the option to save them as a CSV file.
 
-If no holes or no matching columns are selected, the tool will prompt you with a warning and stop the analysis.
+- Save the results: At the end, the tool will prompt you to save the Factor Analysis results as a CSV file.
 
-If the selected data is valid, it scales the data and runs a Factor Analysis. It will determine the factor loadings and variance, and variables for each factor.
-
-The tool will then prepare a results dataframe that includes the factor loadings and the variance for each factor, the variables for each factor, and the selected hole IDs.
-
-If you opted for Factor Scores, the tool will calculate them, add them to the original dataset, and offer you the option to save them as a CSV file.
-
-Save the results: At the end, the tool will prompt you to save the Factor Analysis results as a CSV file.
-
-Remember, Factor Analysis is a powerful statistical method that can help uncover complex patterns in your data. The value you get from it will depend on the nature of your data and the number of factors you choose to analyze.
-
-
- ALPHA BETA CONVERTER
+### ALPHA BETA CONVERTER
     
 This tool allows you to convert alpha and beta values in your structure data to strike and dip values. The process is as follows:
 
-Upload your data: Before you can start the conversion, you need to upload your structure data in CSV format.
+- Upload your data: Before you can start the conversion, you need to upload your structure data in CSV format.
 
-Select holes: Choose which holes you want to include in the conversion process.
+- Select holes: Choose which holes you want to include in the conversion process.
 
-Check the validity of your data: The tool will check if your data contains columns named 'alpha', 'beta', 'drill_hole_azimuth', and 'drill_hole_dip'. If these columns are not found, the tool will warn you and stop the conversion process.
+- Check the validity of your data: The tool will check if your data contains columns named 'alpha', 'beta', 'drill_hole_azimuth', and 'drill_hole_dip'. If these columns are not found, the tool will warn you and stop the conversion process.
 
-Compute the conversion: If your data is valid, the tool will:
+- Compute the conversion: If your data is valid, the tool will:
 
-Convert the alpha, beta, azimuth, and dip values to radians ->Compute the Cartesian coordinates of the structural vector in drill hole coordinates ->Transform these coordinates into global coordinates by applying two rotations based on the drill hole dip and azimuth ->Compute the trend and plunge of the structural vector in global coordinates ->Compute the converted strike and dip from the trend and plunge.
+- Convert the alpha, beta, azimuth, and dip values to radians ->Compute the Cartesian coordinates of the structural vector in drill hole coordinates ->Transform these coordinates into global coordinates by applying two rotations based on the drill hole dip and azimuth ->Compute the trend and plunge of the structural vector in global coordinates ->Compute the converted strike and dip from the trend and plunge.
 
-Finally, you will be asked to save your converted data as a CSV file.
+- Finally, you will be asked to save your converted data as a CSV file.
     
     
-STEREONET AND ROSE PLOT
+### STEREONET AND ROSE PLOT
     
-This tool will plot your strike and dip values on a stereonet and rose diagram. Please ensure you have that your strike and dip are using the right hand rule. The tool is not able to compute dip direction.
-
-Both plots allow you to select as many holes as you would like from the structure hole_select list. You can further color map the attributes based on a different column in the CSV.
+This tool will plot your strike and dip values on a stereonet and rose diagram. Please ensure you have that your strike and dip are using the right hand rule. The tool is not able to compute dip direction. Both plots allow you to select as many holes as you would like from the structure hole_select list. You can further color map the attributes based on a different column in the CSV.
     
 	
-STEREONET SMALL CIRCLES FOR UNORIENTED CORE
+### STEREONET SMALL CIRCLES FOR UNORIENTED CORE
 
 Assign a drill hole strike and drill hole dip column to your dataset where each row is a calculated  strike and dip based on your surrey data. Using your TCA (to core axis) measurements on your structures you can be plotted as small circles on a stereonet. 
