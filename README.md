@@ -3,8 +3,8 @@
 
 Requires Python version 3.11.
 
-Download all files from 'master' branch (click Code -> Download Zip)
-Then extract the contents of the .Zip and install requirements in your envoirnment via:
+Download all files from 'master' branch (click Code -> Download ZIP)
+Then extract the contents of the ZIP and install requirements in your envoirnment via:
 
 `pip install -r requirements.txt`
 
