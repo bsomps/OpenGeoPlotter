@@ -1,7 +1,7 @@
 
 # **Installation Instructions**
 
-Requires Python version 3.10 or up
+Requires Python version 3.11 or up
 
 Download all files from 'master' branch (click Code -> Download ZIP)
 Then extract the contents of the ZIP and install requirements in your envoirnment via:
