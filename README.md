@@ -3,12 +3,12 @@
 
 Requires Python version 3.11.
 
-Download all files from 'master' branch.
-Then install requirements in your envoirnment:
+Download all files from 'master' branch (click Code -> Download Zip)
+Then extract the contents of the .Zip and install requirements in your envoirnment via:
 
 `pip install -r requirements.txt`
 
-Run the main script (OGP_v11.py) from the directory hosting the 'master' branch files:
+Run the main script (OGP_v11.py) from the directory hosting the 'master' branch files via:
 
 `python OGP_v11.py`
 
