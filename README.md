@@ -7,7 +7,7 @@ Install requirements:
 
 `pip install -r requirements.txt`
 
-Run the main script (OGP_v11.py) from the directory hosting the 'master' branch files
+Run the main script (OGP_v11.py) from the directory hosting the 'master' branch files:
 
 `python OGP_v11.py`
 
