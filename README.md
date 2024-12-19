@@ -3,8 +3,13 @@
 
 Requires Python version 3.11.
 Download all files from 'master' branch.
-Install requirements via requirments.txt --- "pip install -r requirements.txt "
-Run the main script (OGP_v11.py) from the directory hosting the 'master' branch files. --- "python OGP_v11.py"
+Install requirements:
+
+`pip install -r requirements.txt`
+
+Run the main script (OGP_v11.py) from the directory hosting the 'master' branch files
+
+`python OGP_v11.py`
 
 
 # **Application Use Instructions**
