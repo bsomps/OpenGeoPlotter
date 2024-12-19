@@ -2,6 +2,7 @@
 # **Installation Instructions**
 
 Requires Python version 3.11.
+
 Download all files from 'master' branch.
 Install requirements:
 
