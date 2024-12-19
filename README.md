@@ -23,35 +23,53 @@ When you start the application, you will be presented with a main window. The ma
 
 ![User Interface](images/userinterface.png)
 
-Import Data: The import buttons allow you to import your drill hole data. The data should be in a .csv format and contain columns for "hole_id" and depth, as well as any other attributes you are interested in. The program relies on a good clean CSV and does not provide any data manipulation in the table once it is imported. Please ensure your data does not contain NaNs (less than symbols etc) or inf values for numerical data. Most importantly, please ensure your column name for the hole ID is "hole_id" the program relies on this exact naming of the hole ID column.
+### IMPORT DATA 
 
-Hole IDs Tables: Please ensure your column name for the hole ID is "hole_id" the program relies on this exact naming of the hole ID column. Each Table is populated with unique hole IDs corresponding to the type of CSV you import (Lithology, Structure, Geochem etc). You can select multiple holes, but you always must select at least one.
+The import buttons allow you to import your drill hole data. The data should be in a .csv format and contain columns for "hole_id" and depth, as well as any other attributes you are interested in. The program relies on a good clean CSV and does not provide any data manipulation in the table once it is imported. Please ensure your data does not contain NaNs (less than symbols etc) or inf values for numerical data. Most importantly, please ensure your column name for the hole ID is "hole_id" the program relies on this exact naming of the hole ID column.
 
-Saving Data: Once your data is imported, you can click file → save to save the datasets in the program. The save will preserve the populated hole_id tables, but not the check state of the hole_ids. The save button will also save the state of your customized attributes. Please ensure to add “.pkl” to the end of your saving name. Example: dont save as “drill_holes” save as “drill_holes.pkl”
+### HOLE ID TABLES 
+
+Please ensure your column name for the hole ID is "hole_id" the program relies on this exact naming of the hole ID column. Each Table is populated with unique hole IDs corresponding to the type of CSV you import (Lithology, Structure, Geochem etc). You can select multiple holes, but you always must select at least one.
+
+### SAVING DATA 
+
+Once your data is imported, you can click file → save to save the datasets in the program. The save will preserve the populated hole_id tables, but not the check state of the hole_ids. The save button will also save the state of your customized attributes. Please ensure to add “.pkl” to the end of your saving name. Example: dont save as “drill_holes” save as “drill_holes.pkl”
 
     	
-GRAPHIC LOGS: The Graphic logs can be plotted using depth in meters in or feet. The sliding bar from ft to meters is to change the label of the y-axis not convert ft to meters or vice versa. Select your from_depth and to_depth columns. Once you select a column that represents lithology, you can customize by color and by width along the X-axis. The width values range from 0.0 to 0.5. 0.5 being the longest width. Selecting multiple hole_ids will place them in the same window and along the same depth axis as the deepest hole.
+### GRAPHIC LOGS 
+
+The Graphic logs can be plotted using depth in meters in or feet. The sliding bar from ft to meters is to change the label of the y-axis not convert ft to meters or vice versa. Select your from_depth and to_depth columns. Once you select a column that represents lithology, you can customize by color and by width along the X-axis. The width values range from 0.0 to 0.5. 0.5 being the longest width. Selecting multiple hole_ids will place them in the same window and along the same depth axis as the deepest hole.
    	 
-XY SCATTER PLOT: This plots the values of two attributes against each other for each sample in the selected hole IDs. You can choose which attributes to plot on the x and y axes. you can further choose a categorical or numerical column to stylize the points, categorical data using tab10 coloramp and numerical data uses r_spectral coloramp
-    	
-DOWNHOLE LINE PLOTS: This creates a line graph for a selected attribute. Depth is increasing down the y-axis. You must select a depth column. Either calculate a center depth in excel for each data point or use your from_depth or to_depth column. There is an option to plot with bars instead of a line graph. 
+### XY SCATTER PLOTS
 
-MERGING LINE PLOTS WITH A GRAPHIC LOG: Create a graphic log of one hole_id. (be sure to only have one graphic log open) Next, create up to 7 downline plots of the same hole_id. With the plots still open, you can click ‘merge plots’ to place them in the same window and on the same depth axis as the graphic log. Once open, press anywhere on the plot to draw a red line ruler across the window. 
+This plots the values of two attributes against each other for each sample in the selected hole IDs. You can choose which attributes to plot on the x and y axes. you can further choose a categorical or numerical column to stylize the points, categorical data using tab10 coloramp and numerical data uses r_spectral coloramp
+    	
+### DOWNHOLE LINE PLOTS
+
+ This creates a line graph for a selected attribute. Depth is increasing down the y-axis. You must select a depth column. Either calculate a center depth in excel for each data point or use your from_depth or to_depth column. There is an option to plot with bars instead of a line graph. 
+
+### MERGING LINE PLOTS WITH A GRAPHIC LOG
+
+ Create a graphic log of one hole_id. (be sure to only have one graphic log open) Next, create up to 7 downline plots of the same hole_id. With the plots still open, you can click ‘merge plots’ to place them in the same window and on the same depth axis as the graphic log. Once open, press anywhere on the plot to draw a red line ruler across the window. 
 
 ![Line Plot View](images/lineplots.png)
 
-CORRELATION MATRIX: This plot will pull all data in the geochem CSV that ends in the user selected “ending tag”. For example if you want to run it on all data that ends in “_ppm” it will only pull columns that end in “_ppm”. If you have data that has percent, ppm, ppb, ect you can simply concatenate an ending tag in excel like “_FA”, then choose “_FA” as your ending tag in the program. 
+### CORRELATION MATRIX 
 
-CUSTOM PLOT: The custom plot button allows you to upload a custom plot in a .json format. These plots can include polygons drawn onto the plot, where any data points that fall within these polygons can be attributed to a new column in your data frame and exported to CSV. Example of a custom plot in .json format:
+This plot will pull all data in the geochem CSV that ends in the user selected “ending tag”. For example if you want to run it on all data that ends in “_ppm” it will only pull columns that end in “_ppm”. If you have data that has percent, ppm, ppb, ect you can simply concatenate an ending tag in excel like “_FA”, then choose “_FA” as your ending tag in the program. 
+
+### CUSTOM PLOTS
+
+The custom plot button allows you to upload a custom plot in a .json format. These plots can include polygons drawn onto the plot, where any data points that fall within these polygons can be attributed to a new column in your data frame and exported to CSV. Example of a custom plot in .json format:
 
 {"polygons": [{"name": "Theolitic", "points": [[0, 0.3105802048], [1.294871795, -1.999], [1.292307692, -2], [0, -2]], "style": {"fillColor": "#FFFFFF", "fillOpacity": 1, "borderColor": "#000000", "borderWidth": 1}, "label": {"position": [0.401282050824999, -1.4223549488], "color": "black", "fontsize": 9, "ha": "center", "va": "center"}}, {"name": "Transitional", "points": [[0, 0.3105802048], [1.294871795, -1.999], [1.294871795, -1.3], [0, 1]], "style": {"fillColor": "#FFFFFF", "fillOpacity": 1, "borderColor": "#000000", "borderWidth": 1}, "label": {"position": [0.6551282051899999, -0.5002559728], "color": "black", "fontsize": 9, "ha": "center", "va": "center"}}, {"name": "Calc-alkaline", "points": [[1.294871795, -1.3], [0, 1], [1.294871795, 1]], "style": {"fillColor": "#FFFFFF", "fillOpacity": 1, "borderColor": "#000000", "borderWidth": 1}, "label": {"position": [0.8683760684599999, 0.26279863466666664], "color": "black", "fontsize": 9, "ha": "center", "va": "center"}}], "title": "Magmatic Affinity Diagram: Ross and B\u00e9dard (2009)", "x_label": "(log) Zr/Y", "y_label": "(log) Th/Yb", "xlim": [0.01, 10]}
 
-DESURVEYING  YOUR DATA 
+### DESURVEYING  YOUR DATA 
 
 You will need three CSV’s to desurvey your data. 1) A collar table 2) A survey table, and 3) A table with your data attributed to depth. It is important that data is desurveyed using a coordinate system in meters (UTM Zone) and that the column you use for depth is in meters. When surveying data, use your ‘to_depth’ column rather than your ‘from_depth’ because the cross section will draw lines uphole to the next data point, not downhole to the next data point. The program will return a CSV with added columns x, y, and z to the CSV you choose for your data. You can now add this CSV to the “upload desurveyed data” button.  (remember you will still need a column named exactly “hole_id”)
 
 
-CROSS SECTION VISUALIZER
+### CROSS SECTION VISUALIZER
 
 ![Cross Section View](images/Cross%20Section%20View.png)
 
