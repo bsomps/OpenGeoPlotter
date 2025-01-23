@@ -5350,7 +5350,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         file_name, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "", "CSV Files (*.csv)", options=options)
         if file_name:
             print(f"Opening file: {file_name}")
-            data = pd.read_csv(file_name, header=0)
+            data = pd.read_csv(file_name, header=0, dtype={'hole_id': str})
 
             # Check if 'hole_id' column exists in the data
             if 'hole_id' not in data.columns:
