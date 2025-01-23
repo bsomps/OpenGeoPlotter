@@ -298,6 +298,8 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
         self.lith_depth_unit = initial_unit
         self.main_window_reference = parent
 
+        self.toolbar = NavigationToolbar(self.canvas, self)
+
         # Create buttons
         self.display_legend_button = QtWidgets.QPushButton("Display Legend")
         self.display_legend_button.clicked.connect(self.display_legend)
@@ -323,6 +325,7 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
         # Set the main layout
         layout = QtWidgets.QVBoxLayout()
         layout.addLayout(button_layout)  # Add the horizontal layout of buttons at the top
+        layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)  # Add the canvas below the buttons
 
         # Create a central widget, set the layout, and make it the central widget of the window
