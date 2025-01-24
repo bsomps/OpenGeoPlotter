@@ -1,7 +1,9 @@
 
 # **Installation Instructions**
 
-Requires Python version 3.11 or up
+***Requires Python version 3.11 or up***
+
+
 
 Download all files from 'master' branch (click Code -> Download ZIP)
 
