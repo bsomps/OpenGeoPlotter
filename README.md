@@ -4,7 +4,10 @@
 Requires Python version 3.11 or up
 
 Download all files from 'master' branch (click Code -> Download ZIP)
-Then extract the contents of the ZIP and install requirements in your envoirnment via:
+
+Extract the contents of the ZIP and open a terminal from the OpenGeoPlotter-master folder (for windows users, right-click on the folder and click 'Open in Terminal').
+
+install requirements in your envoirnment via:
 
 `pip install -r requirements.txt`
 
