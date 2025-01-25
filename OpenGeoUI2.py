@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'OpenGeoLogger2.ui'
+# Form implementation generated from reading ui file 'testlayout2.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -14,36 +14,45 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1537, 830)
+        MainWindow.resize(885, 601)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QtCore.QSize(150, 75))
-        MainWindow.setAutoFillBackground(True)
-        MainWindow.setStyleSheet("")
-        MainWindow.setIconSize(QtCore.QSize(50, 50))
-        MainWindow.setAnimated(False)
+        MainWindow.setStyleSheet("background-color: rgb(105, 105, 108);")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setStyleSheet("background-color: rgb(230, 237, 255);")
+        self.centralwidget.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.centralwidget.setStyleSheet("background-color: rgb(182, 190, 202);\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"")
         self.centralwidget.setObjectName("centralwidget")
-        self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
-        self.gridLayout_2.setObjectName("gridLayout_2")
-        spacerItem = QtWidgets.QSpacerItem(60, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout_2.addItem(spacerItem, 0, 6, 1, 1)
-        self.verticalLayout_6 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_6.setContentsMargins(95, -1, 0, -1)
-        self.verticalLayout_6.setObjectName("verticalLayout_6")
-        self.label_7 = QtWidgets.QLabel(self.centralwidget)
-        self.label_7.setObjectName("label_7")
-        self.verticalLayout_6.addWidget(self.label_7)
+        self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.centralwidget)
+        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
+        self.gridLayout = QtWidgets.QGridLayout()
+        self.gridLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
+        self.gridLayout.setContentsMargins(8, -1, 8, -1)
+        self.gridLayout.setObjectName("gridLayout")
+        self.verticalLayout_7 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_7.setContentsMargins(0, -1, 0, -1)
+        self.verticalLayout_7.setObjectName("verticalLayout_7")
+        self.label_9 = QtWidgets.QLabel(self.centralwidget)
+        self.label_9.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.label_9.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_9.setObjectName("label_9")
+        self.verticalLayout_7.addWidget(self.label_9)
         self.hole_id_listView_cross = QtWidgets.QListView(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.hole_id_listView_cross.sizePolicy().hasHeightForWidth())
         self.hole_id_listView_cross.setSizePolicy(sizePolicy)
+        self.hole_id_listView_cross.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.hole_id_listView_cross.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.hole_id_listView_cross.setAutoFillBackground(False)
         self.hole_id_listView_cross.setStyleSheet("QListView {\n"
 "    border-radius: 10px; \n"
 "    border: 2px solid #A9A9A9; /* Dark gray border */\n"
@@ -53,12 +62,112 @@ class Ui_MainWindow(object):
 "    /* Additional styling properties as needed */\n"
 "}")
         self.hole_id_listView_cross.setObjectName("hole_id_listView_cross")
-        self.verticalLayout_6.addWidget(self.hole_id_listView_cross)
-        self.gridLayout_2.addLayout(self.verticalLayout_6, 3, 7, 2, 1)
+        self.verticalLayout_7.addWidget(self.hole_id_listView_cross)
+        self.gridLayout.addLayout(self.verticalLayout_7, 3, 2, 2, 1)
+        self.horizontalLayout_15 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_15.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
+        self.horizontalLayout_15.setContentsMargins(-1, -1, -1, 90)
+        self.horizontalLayout_15.setObjectName("horizontalLayout_15")
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_15.addItem(spacerItem)
+        self.create_cross_section_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.create_cross_section_button.sizePolicy().hasHeightForWidth())
+        self.create_cross_section_button.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.create_cross_section_button.setFont(font)
+        self.create_cross_section_button.setStyleSheet("\n"
+"background-color: rgb(222, 222, 222);")
+        self.create_cross_section_button.setText("")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/set/zoom_out_map_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.create_cross_section_button.setIcon(icon)
+        self.create_cross_section_button.setIconSize(QtCore.QSize(25, 25))
+        self.create_cross_section_button.setObjectName("create_cross_section_button")
+        self.horizontalLayout_15.addWidget(self.create_cross_section_button)
+        self.view_3d_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.view_3d_button.sizePolicy().hasHeightForWidth())
+        self.view_3d_button.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        self.view_3d_button.setFont(font)
+        self.view_3d_button.setStyleSheet("\n"
+"background-color: rgb(222, 222, 222);")
+        self.view_3d_button.setText("")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap(":/set/3d_rotation_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.view_3d_button.setIcon(icon1)
+        self.view_3d_button.setIconSize(QtCore.QSize(25, 25))
+        self.view_3d_button.setObjectName("view_3d_button")
+        self.horizontalLayout_15.addWidget(self.view_3d_button)
+        self.gridLayout.addLayout(self.horizontalLayout_15, 11, 2, 1, 1)
+        self.verticalLayout_8 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_8.setContentsMargins(0, -1, 0, -1)
+        self.verticalLayout_8.setObjectName("verticalLayout_8")
+        self.label_6 = QtWidgets.QLabel(self.centralwidget)
+        self.label_6.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.label_6.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_6.setObjectName("label_6")
+        self.verticalLayout_8.addWidget(self.label_6)
+        self.listview_attri = QtWidgets.QListView(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.listview_attri.sizePolicy().hasHeightForWidth())
+        self.listview_attri.setSizePolicy(sizePolicy)
+        self.listview_attri.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.listview_attri.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.listview_attri.setStyleSheet("QListView {\n"
+"    border-radius: 10px; \n"
+"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
+"    padding: 5px; /* Adjust padding as needed */\n"
+"\n"
+"/* Adjust the radius for desired roundness */\n"
+"    /* Additional styling properties as needed */\n"
+"}\n"
+"")
+        self.listview_attri.setObjectName("listview_attri")
+        self.verticalLayout_8.addWidget(self.listview_attri)
+        self.gridLayout.addLayout(self.verticalLayout_8, 5, 2, 6, 1)
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_4.setContentsMargins(-1, -1, 0, -1)
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.label_5 = QtWidgets.QLabel(self.centralwidget)
+        self.label_5.setObjectName("label_5")
+        self.verticalLayout_4.addWidget(self.label_5)
+        self.hole_id_listView_structure = QtWidgets.QListView(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.hole_id_listView_structure.sizePolicy().hasHeightForWidth())
+        self.hole_id_listView_structure.setSizePolicy(sizePolicy)
+        self.hole_id_listView_structure.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.hole_id_listView_structure.setStyleSheet("QListView {\n"
+"    border-radius: 10px; \n"
+"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
+"    padding: 5px; /* Adjust padding as needed */\n"
+"\n"
+"/* Adjust the radius for desired roundness */\n"
+"    /* Additional styling properties as needed */\n"
+"}\n"
+"")
+        self.hole_id_listView_structure.setObjectName("hole_id_listView_structure")
+        self.verticalLayout_4.addWidget(self.hole_id_listView_structure)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setContentsMargins(-1, -1, 90, -1)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.help_button = QtWidgets.QPushButton(self.centralwidget)
+        self.help_button.setMinimumSize(QtCore.QSize(30, 0))
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(True)
@@ -82,14 +191,45 @@ class Ui_MainWindow(object):
         self.label_8.setFont(font)
         self.label_8.setObjectName("label_8")
         self.horizontalLayout_3.addWidget(self.label_8)
-        self.gridLayout_2.addLayout(self.horizontalLayout_3, 9, 0, 1, 1)
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem1)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_3)
+        self.gridLayout.addLayout(self.verticalLayout_4, 11, 0, 1, 1)
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setContentsMargins(-1, -1, 0, -1)
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.label_4 = QtWidgets.QLabel(self.centralwidget)
+        self.label_4.setObjectName("label_4")
+        self.verticalLayout_3.addWidget(self.label_4)
+        self.hole_id_listView_geochem = QtWidgets.QListView(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.hole_id_listView_geochem.sizePolicy().hasHeightForWidth())
+        self.hole_id_listView_geochem.setSizePolicy(sizePolicy)
+        self.hole_id_listView_geochem.setMinimumSize(QtCore.QSize(0, 0))
+        self.hole_id_listView_geochem.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.hole_id_listView_geochem.setStyleSheet("QListView {\n"
+"    border-radius: 10px; \n"
+"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
+"    padding: 5px; /* Adjust padding as needed */\n"
+"\n"
+"/* Adjust the radius for desired roundness */\n"
+"    /* Additional styling properties as needed */\n"
+"}\n"
+"")
+        self.hole_id_listView_geochem.setObjectName("hole_id_listView_geochem")
+        self.verticalLayout_3.addWidget(self.hole_id_listView_geochem)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setContentsMargins(-1, -1, 160, -1)
+        self.horizontalLayout_2.setContentsMargins(-1, -1, 0, -1)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.ft = QtWidgets.QLabel(self.centralwidget)
+        self.ft.setMaximumSize(QtCore.QSize(10, 16777215))
         self.ft.setObjectName("ft")
         self.horizontalLayout_2.addWidget(self.ft)
         self.geochem_ft_m = QtWidgets.QSlider(self.centralwidget)
+        self.geochem_ft_m.setMinimumSize(QtCore.QSize(0, 0))
+        self.geochem_ft_m.setMaximumSize(QtCore.QSize(30, 16777215))
         self.geochem_ft_m.setStyleSheet("QSlider::handle:horizontal {\n"
 "    background: rgb(182, 182, 182);\n"
 "    border: 0px solid #5c5c5c;\n"
@@ -102,154 +242,103 @@ class Ui_MainWindow(object):
         self.geochem_ft_m.setObjectName("geochem_ft_m")
         self.horizontalLayout_2.addWidget(self.geochem_ft_m)
         self.ft_4 = QtWidgets.QLabel(self.centralwidget)
+        self.ft_4.setMinimumSize(QtCore.QSize(0, 0))
+        self.ft_4.setMaximumSize(QtCore.QSize(10, 16777215))
         self.ft_4.setObjectName("ft_4")
         self.horizontalLayout_2.addWidget(self.ft_4)
-        self.gridLayout_2.addLayout(self.horizontalLayout_2, 5, 0, 1, 1)
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_3.setContentsMargins(-1, -1, 180, -1)
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.label_4 = QtWidgets.QLabel(self.centralwidget)
-        self.label_4.setObjectName("label_4")
-        self.verticalLayout_3.addWidget(self.label_4)
-        self.hole_id_listView_structure = QtWidgets.QListView(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.hole_id_listView_structure.sizePolicy().hasHeightForWidth())
-        self.hole_id_listView_structure.setSizePolicy(sizePolicy)
-        self.hole_id_listView_structure.setStyleSheet("QListView {\n"
-"    border-radius: 10px; \n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    padding: 5px; /* Adjust padding as needed */\n"
-"\n"
-"/* Adjust the radius for desired roundness */\n"
-"    /* Additional styling properties as needed */\n"
-"}\n"
-"")
-        self.hole_id_listView_structure.setObjectName("hole_id_listView_structure")
-        self.verticalLayout_3.addWidget(self.hole_id_listView_structure)
-        self.gridLayout_2.addLayout(self.verticalLayout_3, 7, 0, 2, 2)
-        self.verticalLayout_7 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_7.setContentsMargins(95, -1, 0, -1)
-        self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.label_6 = QtWidgets.QLabel(self.centralwidget)
-        self.label_6.setObjectName("label_6")
-        self.verticalLayout_7.addWidget(self.label_6)
-        self.listview_attri = QtWidgets.QListView(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.listview_attri.sizePolicy().hasHeightForWidth())
-        self.listview_attri.setSizePolicy(sizePolicy)
-        self.listview_attri.setStyleSheet("QListView {\n"
-"    border-radius: 10px; \n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    padding: 5px; /* Adjust padding as needed */\n"
-"\n"
-"/* Adjust the radius for desired roundness */\n"
-"    /* Additional styling properties as needed */\n"
-"}\n"
-"")
-        self.listview_attri.setObjectName("listview_attri")
-        self.verticalLayout_7.addWidget(self.listview_attri)
-        self.gridLayout_2.addLayout(self.verticalLayout_7, 5, 7, 3, 1)
-        self.formLayout_5 = QtWidgets.QFormLayout()
-        self.formLayout_5.setObjectName("formLayout_5")
-        self.import_geochem_csv_button = QtWidgets.QPushButton(self.centralwidget)
-        self.import_geochem_csv_button.setEnabled(True)
+        spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem2)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_2)
+        self.gridLayout.addLayout(self.verticalLayout_3, 5, 0, 1, 1)
+        self.horizontalLayout_8 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
+        self.import_structure_csv_button = QtWidgets.QPushButton(self.centralwidget)
+        self.import_structure_csv_button.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.import_geochem_csv_button.sizePolicy().hasHeightForWidth())
-        self.import_geochem_csv_button.setSizePolicy(sizePolicy)
-        self.import_geochem_csv_button.setBaseSize(QtCore.QSize(40, 50))
+        sizePolicy.setHeightForWidth(self.import_structure_csv_button.sizePolicy().hasHeightForWidth())
+        self.import_structure_csv_button.setSizePolicy(sizePolicy)
+        self.import_structure_csv_button.setBaseSize(QtCore.QSize(40, 50))
         font = QtGui.QFont()
         font.setPointSize(14)
         font.setBold(True)
         font.setWeight(75)
-        self.import_geochem_csv_button.setFont(font)
-        self.import_geochem_csv_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #808080; /* Darker gray border */\n"
-"    background-color: rgba(141, 148, 191, 0.6); /* Semi-transparent background */\n"
-"\n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.import_geochem_csv_button.setIconSize(QtCore.QSize(40, 40))
-        self.import_geochem_csv_button.setObjectName("import_geochem_csv_button")
-        self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.import_geochem_csv_button)
-        self.show_geochem_button = QtWidgets.QPushButton(self.centralwidget)
+        self.import_structure_csv_button.setFont(font)
+        self.import_structure_csv_button.setStyleSheet("background-color: rgb(139, 176, 255);")
+        self.import_structure_csv_button.setText("")
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap(":/set/add_ad_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.import_structure_csv_button.setIcon(icon2)
+        self.import_structure_csv_button.setIconSize(QtCore.QSize(20, 20))
+        self.import_structure_csv_button.setObjectName("import_structure_csv_button")
+        self.horizontalLayout_8.addWidget(self.import_structure_csv_button)
+        self.show_structure_button = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.show_geochem_button.sizePolicy().hasHeightForWidth())
-        self.show_geochem_button.setSizePolicy(sizePolicy)
-        self.show_geochem_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    background-color: #f2f2f2; /* Adjust background color as needed */\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.show_geochem_button.setText("")
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/Font_Awesome_5_solid_table.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.show_geochem_button.setIcon(icon)
-        self.show_geochem_button.setObjectName("show_geochem_button")
-        self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.show_geochem_button)
-        self.gridLayout_2.addLayout(self.formLayout_5, 0, 3, 1, 1)
-        self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
-        self.label.setMaximumSize(QtCore.QSize(815, 376))
-        self.label.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    background-color: #f2f2f2; /* Adjust background color as needed */\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.label.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.label.setText("")
-        self.label.setPixmap(QtGui.QPixmap(":/ogp5.png"))
-        self.label.setScaledContents(False)
-        self.label.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
-        self.label.setWordWrap(False)
-        self.label.setIndent(0)
-        self.label.setObjectName("label")
-        self.gridLayout_2.addWidget(self.label, 4, 3, 3, 3)
-        self.formLayout_4 = QtWidgets.QFormLayout()
-        self.formLayout_4.setObjectName("formLayout_4")
+        sizePolicy.setHeightForWidth(self.show_structure_button.sizePolicy().hasHeightForWidth())
+        self.show_structure_button.setSizePolicy(sizePolicy)
+        self.show_structure_button.setStyleSheet("background-color: rgb(167, 167, 167);")
+        self.show_structure_button.setText("")
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap(":/set/table_view_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.show_structure_button.setIcon(icon3)
+        self.show_structure_button.setIconSize(QtCore.QSize(20, 20))
+        self.show_structure_button.setObjectName("show_structure_button")
+        self.horizontalLayout_8.addWidget(self.show_structure_button)
         self.stereonet_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.stereonet_button.sizePolicy().hasHeightForWidth())
         self.stereonet_button.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.stereonet_button.setFont(font)
-        self.stereonet_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}")
+        self.stereonet_button.setStyleSheet("")
+        self.stereonet_button.setText("")
+        icon4 = QtGui.QIcon()
+        icon4.addPixmap(QtGui.QPixmap(":/set/axes_11.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.stereonet_button.setIcon(icon4)
+        self.stereonet_button.setIconSize(QtCore.QSize(20, 20))
         self.stereonet_button.setObjectName("stereonet_button")
-        self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.stereonet_button)
+        self.horizontalLayout_8.addWidget(self.stereonet_button)
+        self.unoriented_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.unoriented_button.sizePolicy().hasHeightForWidth())
+        self.unoriented_button.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.unoriented_button.setFont(font)
+        self.unoriented_button.setStyleSheet("")
+        self.unoriented_button.setText("")
+        icon5 = QtGui.QIcon()
+        icon5.addPixmap(QtGui.QPixmap(":/set/scatter_plot_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.unoriented_button.setIcon(icon5)
+        self.unoriented_button.setIconSize(QtCore.QSize(20, 20))
+        self.unoriented_button.setAutoDefault(False)
+        self.unoriented_button.setObjectName("unoriented_button")
+        self.horizontalLayout_8.addWidget(self.unoriented_button)
+        self.rose_diagram_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.rose_diagram_button.sizePolicy().hasHeightForWidth())
+        self.rose_diagram_button.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.rose_diagram_button.setFont(font)
+        self.rose_diagram_button.setStyleSheet("")
+        self.rose_diagram_button.setText("")
+        icon6 = QtGui.QIcon()
+        icon6.addPixmap(QtGui.QPixmap(":/set/patch_3888-9.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.rose_diagram_button.setIcon(icon6)
+        self.rose_diagram_button.setIconSize(QtCore.QSize(20, 20))
+        self.rose_diagram_button.setObjectName("rose_diagram_button")
+        self.horizontalLayout_8.addWidget(self.rose_diagram_button)
         self.alpha_beta_converter_button = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -259,135 +348,463 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(12)
         self.alpha_beta_converter_button.setFont(font)
-        self.alpha_beta_converter_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}")
+        self.alpha_beta_converter_button.setStyleSheet("")
+        self.alpha_beta_converter_button.setText("")
+        icon7 = QtGui.QIcon()
+        icon7.addPixmap(QtGui.QPixmap(":/set/functions_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.alpha_beta_converter_button.setIcon(icon7)
+        self.alpha_beta_converter_button.setIconSize(QtCore.QSize(20, 20))
         self.alpha_beta_converter_button.setObjectName("alpha_beta_converter_button")
-        self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.alpha_beta_converter_button)
-        self.rose_diagram_button = QtWidgets.QPushButton(self.centralwidget)
+        self.horizontalLayout_8.addWidget(self.alpha_beta_converter_button)
+        spacerItem3 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_8.addItem(spacerItem3)
+        self.gridLayout.addLayout(self.horizontalLayout_8, 9, 0, 1, 1)
+        self.horizontalLayout_9 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_9.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_9.setSpacing(0)
+        self.horizontalLayout_9.setObjectName("horizontalLayout_9")
+        self.label_13 = QtWidgets.QLabel(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_13.sizePolicy().hasHeightForWidth())
+        self.label_13.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Segoe MDL2 Assets")
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_13.setFont(font)
+        self.label_13.setStyleSheet("\n"
+"\n"
+"QLabel {\n"
+"    color: rgb(50, 50, 50);\n"
+"}")
+        self.label_13.setTextFormat(QtCore.Qt.AutoText)
+        self.label_13.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.label_13.setWordWrap(False)
+        self.label_13.setObjectName("label_13")
+        self.horizontalLayout_9.addWidget(self.label_13)
+        spacerItem4 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_9.addItem(spacerItem4)
+        self.gridLayout.addLayout(self.horizontalLayout_9, 7, 0, 1, 1)
+        self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
+        self.import_geochem_csv_button = QtWidgets.QPushButton(self.centralwidget)
+        self.import_geochem_csv_button.setEnabled(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.rose_diagram_button.sizePolicy().hasHeightForWidth())
-        self.rose_diagram_button.setSizePolicy(sizePolicy)
+        sizePolicy.setHeightForWidth(self.import_geochem_csv_button.sizePolicy().hasHeightForWidth())
+        self.import_geochem_csv_button.setSizePolicy(sizePolicy)
+        self.import_geochem_csv_button.setBaseSize(QtCore.QSize(40, 50))
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        font.setBold(True)
+        font.setWeight(75)
+        self.import_geochem_csv_button.setFont(font)
+        self.import_geochem_csv_button.setStyleSheet("background-color: rgb(139, 176, 255);")
+        self.import_geochem_csv_button.setText("")
+        self.import_geochem_csv_button.setIcon(icon2)
+        self.import_geochem_csv_button.setIconSize(QtCore.QSize(23, 20))
+        self.import_geochem_csv_button.setObjectName("import_geochem_csv_button")
+        self.horizontalLayout_6.addWidget(self.import_geochem_csv_button)
+        self.show_geochem_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.show_geochem_button.sizePolicy().hasHeightForWidth())
+        self.show_geochem_button.setSizePolicy(sizePolicy)
+        self.show_geochem_button.setStyleSheet("background-color: rgb(167, 167, 167);")
+        self.show_geochem_button.setText("")
+        self.show_geochem_button.setIcon(icon3)
+        self.show_geochem_button.setIconSize(QtCore.QSize(20, 20))
+        self.show_geochem_button.setObjectName("show_geochem_button")
+        self.horizontalLayout_6.addWidget(self.show_geochem_button)
+        self.XYscatter_plots_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.XYscatter_plots_button.sizePolicy().hasHeightForWidth())
+        self.XYscatter_plots_button.setSizePolicy(sizePolicy)
+        self.XYscatter_plots_button.setMaximumSize(QtCore.QSize(30, 30))
         font = QtGui.QFont()
         font.setPointSize(12)
-        self.rose_diagram_button.setFont(font)
-        self.rose_diagram_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}")
-        self.rose_diagram_button.setObjectName("rose_diagram_button")
-        self.formLayout_4.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.rose_diagram_button)
-        self.unoriented_button = QtWidgets.QPushButton(self.centralwidget)
+        self.XYscatter_plots_button.setFont(font)
+        self.XYscatter_plots_button.setStyleSheet("")
+        self.XYscatter_plots_button.setText("")
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(":/set/path9sc6-1.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.XYscatter_plots_button.setIcon(icon8)
+        self.XYscatter_plots_button.setIconSize(QtCore.QSize(20, 20))
+        self.XYscatter_plots_button.setObjectName("XYscatter_plots_button")
+        self.horizontalLayout_6.addWidget(self.XYscatter_plots_button)
+        self.factor_analysis_button = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.unoriented_button.sizePolicy().hasHeightForWidth())
-        self.unoriented_button.setSizePolicy(sizePolicy)
+        sizePolicy.setHeightForWidth(self.factor_analysis_button.sizePolicy().hasHeightForWidth())
+        self.factor_analysis_button.setSizePolicy(sizePolicy)
+        self.factor_analysis_button.setMaximumSize(QtCore.QSize(30, 30))
         font = QtGui.QFont()
         font.setPointSize(12)
-        self.unoriented_button.setFont(font)
-        self.unoriented_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
+        self.factor_analysis_button.setFont(font)
+        self.factor_analysis_button.setStyleSheet("")
+        self.factor_analysis_button.setText("")
+        icon9 = QtGui.QIcon()
+        icon9.addPixmap(QtGui.QPixmap(":/set/function_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.factor_analysis_button.setIcon(icon9)
+        self.factor_analysis_button.setIconSize(QtCore.QSize(20, 20))
+        self.factor_analysis_button.setObjectName("factor_analysis_button")
+        self.horizontalLayout_6.addWidget(self.factor_analysis_button)
+        self.downhole_plots_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.downhole_plots_button.sizePolicy().hasHeightForWidth())
+        self.downhole_plots_button.setSizePolicy(sizePolicy)
+        self.downhole_plots_button.setMaximumSize(QtCore.QSize(30, 30))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.downhole_plots_button.setFont(font)
+        self.downhole_plots_button.setStyleSheet("")
+        self.downhole_plots_button.setText("")
+        icon10 = QtGui.QIcon()
+        icon10.addPixmap(QtGui.QPixmap(":/set/path9gr6.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.downhole_plots_button.setIcon(icon10)
+        self.downhole_plots_button.setIconSize(QtCore.QSize(20, 20))
+        self.downhole_plots_button.setObjectName("downhole_plots_button")
+        self.horizontalLayout_6.addWidget(self.downhole_plots_button)
+        self.correlation_matrices = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.correlation_matrices.sizePolicy().hasHeightForWidth())
+        self.correlation_matrices.setSizePolicy(sizePolicy)
+        self.correlation_matrices.setMaximumSize(QtCore.QSize(30, 30))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.correlation_matrices.setFont(font)
+        self.correlation_matrices.setStyleSheet("")
+        self.correlation_matrices.setText("")
+        icon11 = QtGui.QIcon()
+        icon11.addPixmap(QtGui.QPixmap(":/set/4163314-200.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.correlation_matrices.setIcon(icon11)
+        self.correlation_matrices.setIconSize(QtCore.QSize(20, 20))
+        self.correlation_matrices.setObjectName("correlation_matrices")
+        self.horizontalLayout_6.addWidget(self.correlation_matrices)
+        self.custom_plot_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.custom_plot_button.sizePolicy().hasHeightForWidth())
+        self.custom_plot_button.setSizePolicy(sizePolicy)
+        self.custom_plot_button.setMaximumSize(QtCore.QSize(30, 30))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.custom_plot_button.setFont(font)
+        self.custom_plot_button.setWhatsThis("")
+        self.custom_plot_button.setStyleSheet("")
+        self.custom_plot_button.setText("")
+        icon12 = QtGui.QIcon()
+        icon12.addPixmap(QtGui.QPixmap(":/set/flowsheet_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.custom_plot_button.setIcon(icon12)
+        self.custom_plot_button.setIconSize(QtCore.QSize(20, 20))
+        self.custom_plot_button.setObjectName("custom_plot_button")
+        self.horizontalLayout_6.addWidget(self.custom_plot_button)
+        spacerItem5 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_6.addItem(spacerItem5)
+        self.gridLayout.addLayout(self.horizontalLayout_6, 4, 0, 1, 1)
+        self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_12.setContentsMargins(-1, 0, 0, -1)
+        self.horizontalLayout_12.setSpacing(0)
+        self.horizontalLayout_12.setObjectName("horizontalLayout_12")
+        self.label_15 = QtWidgets.QLabel(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_15.sizePolicy().hasHeightForWidth())
+        self.label_15.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Segoe MDL2 Assets")
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setItalic(False)
+        font.setWeight(75)
+        self.label_15.setFont(font)
+        self.label_15.setStyleSheet("\n"
 "\n"
-"    /* Other styling properties like padding, font, etc. */\n"
+"QLabel {\n"
+"    color: rgb(50, 50, 50);\n"
 "}")
-        self.unoriented_button.setAutoDefault(False)
-        self.unoriented_button.setObjectName("unoriented_button")
-        self.formLayout_4.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.unoriented_button)
-        self.gridLayout_2.addLayout(self.formLayout_4, 1, 5, 2, 1)
-        self.formLayout = QtWidgets.QFormLayout()
-        self.formLayout.setObjectName("formLayout")
+        self.label_15.setTextFormat(QtCore.Qt.AutoText)
+        self.label_15.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.label_15.setWordWrap(False)
+        self.label_15.setObjectName("label_15")
+        self.horizontalLayout_12.addWidget(self.label_15)
+        spacerItem6 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_12.addItem(spacerItem6)
+        self.gridLayout.addLayout(self.horizontalLayout_12, 0, 0, 1, 1)
+        self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_11.setContentsMargins(-1, 0, 0, -1)
+        self.horizontalLayout_11.setSpacing(0)
+        self.horizontalLayout_11.setObjectName("horizontalLayout_11")
+        spacerItem7 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_11.addItem(spacerItem7)
+        self.label_14 = QtWidgets.QLabel(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_14.sizePolicy().hasHeightForWidth())
+        self.label_14.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Segoe MDL2 Assets")
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_14.setFont(font)
+        self.label_14.setStyleSheet("\n"
+"\n"
+"QLabel {\n"
+"    color: rgb(50, 50, 50);\n"
+"}")
+        self.label_14.setTextFormat(QtCore.Qt.AutoText)
+        self.label_14.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.label_14.setWordWrap(False)
+        self.label_14.setObjectName("label_14")
+        self.horizontalLayout_11.addWidget(self.label_14)
+        self.gridLayout.addLayout(self.horizontalLayout_11, 0, 2, 1, 1)
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.import_lithology_csv_button = QtWidgets.QPushButton(self.centralwidget)
+        self.import_lithology_csv_button.setEnabled(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.import_lithology_csv_button.sizePolicy().hasHeightForWidth())
+        self.import_lithology_csv_button.setSizePolicy(sizePolicy)
+        self.import_lithology_csv_button.setMaximumSize(QtCore.QSize(30, 30))
+        self.import_lithology_csv_button.setBaseSize(QtCore.QSize(40, 50))
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        font.setBold(True)
+        font.setWeight(75)
+        self.import_lithology_csv_button.setFont(font)
+        self.import_lithology_csv_button.setStyleSheet("\n"
+"    background-color: rgb(139, 176, 255);\n"
+"    ")
+        self.import_lithology_csv_button.setText("")
+        self.import_lithology_csv_button.setIcon(icon2)
+        self.import_lithology_csv_button.setIconSize(QtCore.QSize(20, 20))
+        self.import_lithology_csv_button.setObjectName("import_lithology_csv_button")
+        self.horizontalLayout_4.addWidget(self.import_lithology_csv_button)
+        self.show_lith_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.show_lith_button.sizePolicy().hasHeightForWidth())
+        self.show_lith_button.setSizePolicy(sizePolicy)
+        self.show_lith_button.setMaximumSize(QtCore.QSize(30, 30))
+        self.show_lith_button.setStyleSheet("\n"
+"    background-color: rgb(167, 167, 167);\n"
+"    ")
+        self.show_lith_button.setText("")
+        self.show_lith_button.setIcon(icon3)
+        self.show_lith_button.setIconSize(QtCore.QSize(20, 20))
+        self.show_lith_button.setObjectName("show_lith_button")
+        self.horizontalLayout_4.addWidget(self.show_lith_button)
         self.stylize_logs_button = QtWidgets.QPushButton(self.centralwidget)
-        self.stylize_logs_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 1.5px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"    padding-left: 5px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 5px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"\n"
-"}\n"
-"\n"
-"")
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.stylize_logs_button.sizePolicy().hasHeightForWidth())
+        self.stylize_logs_button.setSizePolicy(sizePolicy)
+        self.stylize_logs_button.setMaximumSize(QtCore.QSize(30, 30))
+        self.stylize_logs_button.setStyleSheet("")
+        self.stylize_logs_button.setText("")
+        icon13 = QtGui.QIcon()
+        icon13.addPixmap(QtGui.QPixmap(":/set/edit_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.stylize_logs_button.setIcon(icon13)
+        self.stylize_logs_button.setIconSize(QtCore.QSize(20, 20))
         self.stylize_logs_button.setObjectName("stylize_logs_button")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.stylize_logs_button)
+        self.horizontalLayout_4.addWidget(self.stylize_logs_button)
         self.clear_parameters_button = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.clear_parameters_button.sizePolicy().hasHeightForWidth())
         self.clear_parameters_button.setSizePolicy(sizePolicy)
-        self.clear_parameters_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 1.5px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"    padding-left: 5px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 5px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"\n"
-"}\n"
-"")
+        self.clear_parameters_button.setMaximumSize(QtCore.QSize(30, 30))
+        self.clear_parameters_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.clear_parameters_button.setStyleSheet("")
+        self.clear_parameters_button.setText("")
+        icon14 = QtGui.QIcon()
+        icon14.addPixmap(QtGui.QPixmap(":/set/delete_forever_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.clear_parameters_button.setIcon(icon14)
+        self.clear_parameters_button.setIconSize(QtCore.QSize(20, 20))
         self.clear_parameters_button.setObjectName("clear_parameters_button")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.clear_parameters_button)
+        self.horizontalLayout_4.addWidget(self.clear_parameters_button)
         self.create_graphic_logs_button = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.create_graphic_logs_button.sizePolicy().hasHeightForWidth())
         self.create_graphic_logs_button.setSizePolicy(sizePolicy)
+        self.create_graphic_logs_button.setMaximumSize(QtCore.QSize(30, 30))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.create_graphic_logs_button.setFont(font)
-        self.create_graphic_logs_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"\n"
-"")
+        self.create_graphic_logs_button.setStyleSheet("")
+        self.create_graphic_logs_button.setText("")
+        icon15 = QtGui.QIcon()
+        icon15.addPixmap(QtGui.QPixmap(":/set/rect1-5.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.create_graphic_logs_button.setIcon(icon15)
+        self.create_graphic_logs_button.setIconSize(QtCore.QSize(20, 20))
         self.create_graphic_logs_button.setObjectName("create_graphic_logs_button")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.SpanningRole, self.create_graphic_logs_button)
-        self.gridLayout_2.addLayout(self.formLayout, 1, 0, 2, 1)
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setContentsMargins(-1, -1, 180, -1)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.label_3 = QtWidgets.QLabel(self.centralwidget)
-        self.label_3.setObjectName("label_3")
-        self.verticalLayout_2.addWidget(self.label_3)
-        self.hole_id_listView_geochem = QtWidgets.QListView(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.horizontalLayout_4.addWidget(self.create_graphic_logs_button)
+        self.merge_plots = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.merge_plots.sizePolicy().hasHeightForWidth())
+        self.merge_plots.setSizePolicy(sizePolicy)
+        self.merge_plots.setMaximumSize(QtCore.QSize(30, 30))
+        self.merge_plots.setStyleSheet("")
+        self.merge_plots.setText("")
+        icon16 = QtGui.QIcon()
+        icon16.addPixmap(QtGui.QPixmap(":/set/cell_merge_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.merge_plots.setIcon(icon16)
+        self.merge_plots.setIconSize(QtCore.QSize(20, 20))
+        self.merge_plots.setObjectName("merge_plots")
+        self.horizontalLayout_4.addWidget(self.merge_plots)
+        spacerItem8 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_4.addItem(spacerItem8)
+        self.gridLayout.addLayout(self.horizontalLayout_4, 1, 0, 1, 1)
+        self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_10.setObjectName("horizontalLayout_10")
+        spacerItem9 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_10.addItem(spacerItem9)
+        self.desurvey_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.desurvey_button.sizePolicy().hasHeightForWidth())
+        self.desurvey_button.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.desurvey_button.setFont(font)
+        self.desurvey_button.setStyleSheet("")
+        self.desurvey_button.setText("")
+        icon17 = QtGui.QIcon()
+        icon17.addPixmap(QtGui.QPixmap(":/set/add_column_right_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.desurvey_button.setIcon(icon17)
+        self.desurvey_button.setIconSize(QtCore.QSize(20, 20))
+        self.desurvey_button.setObjectName("desurvey_button")
+        self.horizontalLayout_10.addWidget(self.desurvey_button)
+        self.upload_des_data = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.upload_des_data.sizePolicy().hasHeightForWidth())
+        self.upload_des_data.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.upload_des_data.setFont(font)
+        self.upload_des_data.setStyleSheet("background-color: rgb(139, 176, 255);")
+        self.upload_des_data.setText("")
+        self.upload_des_data.setIcon(icon2)
+        self.upload_des_data.setIconSize(QtCore.QSize(20, 20))
+        self.upload_des_data.setObjectName("upload_des_data")
+        self.horizontalLayout_10.addWidget(self.upload_des_data)
+        self.show_desurveyed_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.show_desurveyed_button.sizePolicy().hasHeightForWidth())
+        self.show_desurveyed_button.setSizePolicy(sizePolicy)
+        self.show_desurveyed_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.show_desurveyed_button.setStyleSheet("background-color: rgb(167, 167, 167);")
+        self.show_desurveyed_button.setText("")
+        self.show_desurveyed_button.setIcon(icon3)
+        self.show_desurveyed_button.setIconSize(QtCore.QSize(20, 20))
+        self.show_desurveyed_button.setObjectName("show_desurveyed_button")
+        self.horizontalLayout_10.addWidget(self.show_desurveyed_button)
+        self.DEM_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.DEM_button.sizePolicy().hasHeightForWidth())
+        self.DEM_button.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.DEM_button.setFont(font)
+        self.DEM_button.setStyleSheet("")
+        self.DEM_button.setText("")
+        icon18 = QtGui.QIcon()
+        icon18.addPixmap(QtGui.QPixmap(":/set/image_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.DEM_button.setIcon(icon18)
+        self.DEM_button.setIconSize(QtCore.QSize(20, 20))
+        self.DEM_button.setObjectName("DEM_button")
+        self.horizontalLayout_10.addWidget(self.DEM_button)
+        self.manage_attributes_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.manage_attributes_button.sizePolicy().hasHeightForWidth())
+        self.manage_attributes_button.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.manage_attributes_button.setFont(font)
+        self.manage_attributes_button.setStyleSheet("")
+        self.manage_attributes_button.setText("")
+        icon19 = QtGui.QIcon()
+        icon19.addPixmap(QtGui.QPixmap(":/set/build_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.manage_attributes_button.setIcon(icon19)
+        self.manage_attributes_button.setIconSize(QtCore.QSize(20, 20))
+        self.manage_attributes_button.setObjectName("manage_attributes_button")
+        self.horizontalLayout_10.addWidget(self.manage_attributes_button)
+        self.plot_settings_button = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.plot_settings_button.sizePolicy().hasHeightForWidth())
+        self.plot_settings_button.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.plot_settings_button.setFont(font)
+        self.plot_settings_button.setStyleSheet("")
+        self.plot_settings_button.setText("")
+        icon20 = QtGui.QIcon()
+        icon20.addPixmap(QtGui.QPixmap(":/set/settings_24dp_000000_FILL0_wght400_GRAD0_opsz24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.plot_settings_button.setIcon(icon20)
+        self.plot_settings_button.setIconSize(QtCore.QSize(20, 20))
+        self.plot_settings_button.setObjectName("plot_settings_button")
+        self.horizontalLayout_10.addWidget(self.plot_settings_button)
+        self.gridLayout.addLayout(self.horizontalLayout_10, 1, 2, 1, 1)
+        spacerItem10 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem10, 0, 1, 1, 1)
+        spacerItem11 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem11, 6, 0, 1, 1)
+        spacerItem12 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem12, 10, 1, 1, 1)
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setContentsMargins(-1, 0, 0, 0)
+        self.verticalLayout.setSpacing(4)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setObjectName("label_2")
+        self.verticalLayout.addWidget(self.label_2)
+        self.hole_id_listView_lithology = QtWidgets.QListView(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.hole_id_listView_geochem.sizePolicy().hasHeightForWidth())
-        self.hole_id_listView_geochem.setSizePolicy(sizePolicy)
-        self.hole_id_listView_geochem.setStyleSheet("QListView {\n"
+        sizePolicy.setHeightForWidth(self.hole_id_listView_lithology.sizePolicy().hasHeightForWidth())
+        self.hole_id_listView_lithology.setSizePolicy(sizePolicy)
+        self.hole_id_listView_lithology.setMinimumSize(QtCore.QSize(0, 0))
+        self.hole_id_listView_lithology.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.hole_id_listView_lithology.setStyleSheet("QListView {\n"
 "    border-radius: 10px; \n"
 "    border: 2px solid #A9A9A9; /* Dark gray border */\n"
 "    padding: 5px; /* Adjust padding as needed */\n"
@@ -396,16 +813,17 @@ class Ui_MainWindow(object):
 "    /* Additional styling properties as needed */\n"
 "}\n"
 "")
-        self.hole_id_listView_geochem.setObjectName("hole_id_listView_geochem")
-        self.verticalLayout_2.addWidget(self.hole_id_listView_geochem)
-        self.gridLayout_2.addLayout(self.verticalLayout_2, 6, 0, 1, 2)
+        self.hole_id_listView_lithology.setObjectName("hole_id_listView_lithology")
+        self.verticalLayout.addWidget(self.hole_id_listView_lithology, 0, QtCore.Qt.AlignTop)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setContentsMargins(-1, -1, 160, -1)
+        self.horizontalLayout.setContentsMargins(-1, -1, 0, -1)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.ft_2 = QtWidgets.QLabel(self.centralwidget)
+        self.ft_2.setMaximumSize(QtCore.QSize(10, 16777215))
         self.ft_2.setObjectName("ft_2")
         self.horizontalLayout.addWidget(self.ft_2)
         self.lith_ft_m = QtWidgets.QSlider(self.centralwidget)
+        self.lith_ft_m.setMaximumSize(QtCore.QSize(30, 16777215))
         self.lith_ft_m.setStyleSheet("QSlider::handle:horizontal {\n"
 "    background: rgb(182, 182, 182);\n"
 "    border: 0px solid #5c5c5c;\n"
@@ -418,456 +836,61 @@ class Ui_MainWindow(object):
         self.lith_ft_m.setObjectName("lith_ft_m")
         self.horizontalLayout.addWidget(self.lith_ft_m)
         self.ft_3 = QtWidgets.QLabel(self.centralwidget)
+        self.ft_3.setMaximumSize(QtCore.QSize(50, 16777215))
         self.ft_3.setObjectName("ft_3")
         self.horizontalLayout.addWidget(self.ft_3)
-        self.gridLayout_2.addLayout(self.horizontalLayout, 3, 0, 1, 1)
-        self.formLayout_7 = QtWidgets.QFormLayout()
-        self.formLayout_7.setObjectName("formLayout_7")
-        self.upload_des_data = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.upload_des_data.sizePolicy().hasHeightForWidth())
-        self.upload_des_data.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        font.setBold(True)
-        font.setWeight(75)
-        self.upload_des_data.setFont(font)
-        self.upload_des_data.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #808080; /* Darker gray border */\n"
-"    background-color: rgba(141, 148, 191, 0.6); /* Semi-transparent background */\n"
-"\n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.upload_des_data.setObjectName("upload_des_data")
-        self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.upload_des_data)
-        self.show_desurveyed_button = QtWidgets.QPushButton(self.centralwidget)
+        spacerItem13 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem13)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_7.setContentsMargins(-1, 0, 0, -1)
+        self.horizontalLayout_7.setSpacing(0)
+        self.horizontalLayout_7.setObjectName("horizontalLayout_7")
+        self.label_12 = QtWidgets.QLabel(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.show_desurveyed_button.sizePolicy().hasHeightForWidth())
-        self.show_desurveyed_button.setSizePolicy(sizePolicy)
-        self.show_desurveyed_button.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.show_desurveyed_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 1.5px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}")
-        self.show_desurveyed_button.setText("")
-        self.show_desurveyed_button.setIcon(icon)
-        self.show_desurveyed_button.setObjectName("show_desurveyed_button")
-        self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.show_desurveyed_button)
-        self.gridLayout_2.addLayout(self.formLayout_7, 2, 7, 1, 1)
-        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.DEM_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.DEM_button.sizePolicy().hasHeightForWidth())
-        self.DEM_button.setSizePolicy(sizePolicy)
+        sizePolicy.setHeightForWidth(self.label_12.sizePolicy().hasHeightForWidth())
+        self.label_12.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
-        font.setPointSize(10)
-        self.DEM_button.setFont(font)
-        self.DEM_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 1.5px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}")
-        self.DEM_button.setObjectName("DEM_button")
-        self.verticalLayout_4.addWidget(self.DEM_button)
-        self.manage_attributes_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.manage_attributes_button.sizePolicy().hasHeightForWidth())
-        self.manage_attributes_button.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.manage_attributes_button.setFont(font)
-        self.manage_attributes_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 1.5px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}")
-        self.manage_attributes_button.setObjectName("manage_attributes_button")
-        self.verticalLayout_4.addWidget(self.manage_attributes_button)
-        self.plot_settings_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.plot_settings_button.sizePolicy().hasHeightForWidth())
-        self.plot_settings_button.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.plot_settings_button.setFont(font)
-        self.plot_settings_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 1.5px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}")
-        self.plot_settings_button.setObjectName("plot_settings_button")
-        self.verticalLayout_4.addWidget(self.plot_settings_button)
-        self.create_cross_section_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.create_cross_section_button.sizePolicy().hasHeightForWidth())
-        self.create_cross_section_button.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(11)
+        font.setFamily("Segoe MDL2 Assets")
+        font.setPointSize(12)
         font.setBold(True)
         font.setWeight(75)
-        self.create_cross_section_button.setFont(font)
-        self.create_cross_section_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #808080; /* Darker gray border */\n"
-"    background-color: rgba(141, 148, 191, 0.6)\n"
-"    /* Other styling properties like padding, font, etc. */\n"
+        self.label_12.setFont(font)
+        self.label_12.setStyleSheet("\n"
+"\n"
+"QLabel {\n"
+"    color: rgb(50, 50, 50);\n"
 "}")
-        self.create_cross_section_button.setObjectName("create_cross_section_button")
-        self.verticalLayout_4.addWidget(self.create_cross_section_button)
-        self.view_3d_button = QtWidgets.QPushButton(self.centralwidget)
+        self.label_12.setTextFormat(QtCore.Qt.AutoText)
+        self.label_12.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.label_12.setWordWrap(False)
+        self.label_12.setObjectName("label_12")
+        self.horizontalLayout_7.addWidget(self.label_12)
+        spacerItem14 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem14)
+        self.verticalLayout.addLayout(self.horizontalLayout_7)
+        self.verticalLayout.setStretch(1, 1)
+        self.gridLayout.addLayout(self.verticalLayout, 3, 0, 1, 1)
+        self.label = QtWidgets.QLabel(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.view_3d_button.sizePolicy().hasHeightForWidth())
-        self.view_3d_button.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        font.setBold(True)
-        font.setWeight(75)
-        self.view_3d_button.setFont(font)
-        self.view_3d_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #808080; /* Darker gray border */\n"
-"    background-color: rgba(141, 148, 191, 0.6)\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}")
-        self.view_3d_button.setObjectName("view_3d_button")
-        self.verticalLayout_4.addWidget(self.view_3d_button)
-        self.gridLayout_2.addLayout(self.verticalLayout_4, 8, 7, 2, 1)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout_2.addItem(spacerItem1, 0, 4, 1, 1)
-        self.gridLayout = QtWidgets.QGridLayout()
-        self.gridLayout.setObjectName("gridLayout")
-        self.label_10 = QtWidgets.QLabel(self.centralwidget)
-        self.label_10.setObjectName("label_10")
-        self.gridLayout.addWidget(self.label_10, 0, 0, 1, 1)
-        self.merge_plots = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.merge_plots.sizePolicy().hasHeightForWidth())
-        self.merge_plots.setSizePolicy(sizePolicy)
-        self.merge_plots.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 1.5px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"    padding-left: 5px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 5px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"\n"
-"}\n"
-"\n"
-"")
-        self.merge_plots.setObjectName("merge_plots")
-        self.gridLayout.addWidget(self.merge_plots, 0, 1, 1, 1)
-        self.label_9 = QtWidgets.QLabel(self.centralwidget)
-        self.label_9.setObjectName("label_9")
-        self.gridLayout.addWidget(self.label_9, 0, 2, 1, 1)
-        self.gridLayout_2.addLayout(self.gridLayout, 1, 1, 1, 1)
-        self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setContentsMargins(-1, -1, 180, 0)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.label_2 = QtWidgets.QLabel(self.centralwidget)
-        self.label_2.setObjectName("label_2")
-        self.verticalLayout.addWidget(self.label_2)
-        self.hole_id_listView_lithology = QtWidgets.QListView(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.hole_id_listView_lithology.sizePolicy().hasHeightForWidth())
-        self.hole_id_listView_lithology.setSizePolicy(sizePolicy)
-        self.hole_id_listView_lithology.setStyleSheet("QListView {\n"
-"    border-radius: 10px; \n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    padding: 5px; /* Adjust padding as needed */\n"
-"\n"
-"/* Adjust the radius for desired roundness */\n"
-"    /* Additional styling properties as needed */\n"
-"}\n"
-"")
-        self.hole_id_listView_lithology.setObjectName("hole_id_listView_lithology")
-        self.verticalLayout.addWidget(self.hole_id_listView_lithology)
-        self.gridLayout_2.addLayout(self.verticalLayout, 4, 0, 1, 2)
-        self.formLayout_3 = QtWidgets.QFormLayout()
-        self.formLayout_3.setObjectName("formLayout_3")
-        self.downhole_plots_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.downhole_plots_button.sizePolicy().hasHeightForWidth())
-        self.downhole_plots_button.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.downhole_plots_button.setFont(font)
-        self.downhole_plots_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.downhole_plots_button.setObjectName("downhole_plots_button")
-        self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.downhole_plots_button)
-        self.XYscatter_plots_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.XYscatter_plots_button.sizePolicy().hasHeightForWidth())
-        self.XYscatter_plots_button.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.XYscatter_plots_button.setFont(font)
-        self.XYscatter_plots_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.XYscatter_plots_button.setObjectName("XYscatter_plots_button")
-        self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.XYscatter_plots_button)
-        self.factor_analysis_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.factor_analysis_button.sizePolicy().hasHeightForWidth())
-        self.factor_analysis_button.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.factor_analysis_button.setFont(font)
-        self.factor_analysis_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.factor_analysis_button.setObjectName("factor_analysis_button")
-        self.formLayout_3.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.factor_analysis_button)
-        self.correlation_matrices = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.correlation_matrices.sizePolicy().hasHeightForWidth())
-        self.correlation_matrices.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.correlation_matrices.setFont(font)
-        self.correlation_matrices.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.correlation_matrices.setObjectName("correlation_matrices")
-        self.formLayout_3.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.correlation_matrices)
-        self.custom_plot_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.custom_plot_button.sizePolicy().hasHeightForWidth())
-        self.custom_plot_button.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.custom_plot_button.setFont(font)
-        self.custom_plot_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.custom_plot_button.setObjectName("custom_plot_button")
-        self.formLayout_3.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.custom_plot_button)
-        self.gridLayout_2.addLayout(self.formLayout_3, 1, 3, 2, 1)
-        self.formLayout_6 = QtWidgets.QFormLayout()
-        self.formLayout_6.setObjectName("formLayout_6")
-        self.import_structure_csv_button = QtWidgets.QPushButton(self.centralwidget)
-        self.import_structure_csv_button.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.import_structure_csv_button.sizePolicy().hasHeightForWidth())
-        self.import_structure_csv_button.setSizePolicy(sizePolicy)
-        self.import_structure_csv_button.setBaseSize(QtCore.QSize(40, 50))
-        font = QtGui.QFont()
-        font.setPointSize(14)
-        font.setBold(True)
-        font.setWeight(75)
-        self.import_structure_csv_button.setFont(font)
-        self.import_structure_csv_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #808080; /* Darker gray border */\n"
-"    background-color: rgba(141, 148, 191, 0.6); /* Semi-transparent background */\n"
-"\n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.import_structure_csv_button.setIconSize(QtCore.QSize(40, 40))
-        self.import_structure_csv_button.setObjectName("import_structure_csv_button")
-        self.formLayout_6.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.import_structure_csv_button)
-        self.show_structure_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.show_structure_button.sizePolicy().hasHeightForWidth())
-        self.show_structure_button.setSizePolicy(sizePolicy)
-        self.show_structure_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 1.5px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}")
-        self.show_structure_button.setText("")
-        self.show_structure_button.setIcon(icon)
-        self.show_structure_button.setObjectName("show_structure_button")
-        self.formLayout_6.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.show_structure_button)
-        self.gridLayout_2.addLayout(self.formLayout_6, 0, 5, 1, 1)
-        self.verticalLayout_5 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.label_5 = QtWidgets.QLabel(self.centralwidget)
-        font = QtGui.QFont()
-        font.setPointSize(18)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label_5.setFont(font)
-        self.label_5.setStyleSheet("color : rgb(141, 148, 191)\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"")
-        self.label_5.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.label_5.setObjectName("label_5")
-        self.verticalLayout_5.addWidget(self.label_5)
-        self.desurvey_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.desurvey_button.sizePolicy().hasHeightForWidth())
-        self.desurvey_button.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.desurvey_button.setFont(font)
-        self.desurvey_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}")
-        self.desurvey_button.setObjectName("desurvey_button")
-        self.verticalLayout_5.addWidget(self.desurvey_button)
-        self.gridLayout_2.addLayout(self.verticalLayout_5, 0, 7, 2, 1)
-        self.formLayout_2 = QtWidgets.QFormLayout()
-        self.formLayout_2.setObjectName("formLayout_2")
-        self.import_lithology_csv_button = QtWidgets.QPushButton(self.centralwidget)
-        self.import_lithology_csv_button.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.import_lithology_csv_button.sizePolicy().hasHeightForWidth())
-        self.import_lithology_csv_button.setSizePolicy(sizePolicy)
-        self.import_lithology_csv_button.setBaseSize(QtCore.QSize(40, 50))
-        font = QtGui.QFont()
-        font.setPointSize(14)
-        font.setBold(True)
-        font.setWeight(75)
-        self.import_lithology_csv_button.setFont(font)
-        self.import_lithology_csv_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #808080; /* Darker gray border */\n"
-"    background-color: rgba(141, 148, 191, 0.6); /* Semi-transparent background */\n"
-"\n"
-"    /* Horizontal padding */\n"
-"    padding-left: 10px; /* Adjust for desired padding on the left side */\n"
-"    padding-right: 10px; /* Adjust for desired padding on the right side */\n"
-"\n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"\n"
-"")
-        self.import_lithology_csv_button.setIconSize(QtCore.QSize(40, 40))
-        self.import_lithology_csv_button.setObjectName("import_lithology_csv_button")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.import_lithology_csv_button)
-        self.show_lith_button = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.show_lith_button.sizePolicy().hasHeightForWidth())
-        self.show_lith_button.setSizePolicy(sizePolicy)
-        self.show_lith_button.setStyleSheet("QPushButton {\n"
-"    border-radius: 10px; /* Adjust for desired roundness */\n"
-"    border: 2px solid #A9A9A9; /* Dark gray border */\n"
-"    \n"
-"    /* Other styling properties like padding, font, etc. */\n"
-"}\n"
-"")
-        self.show_lith_button.setText("")
-        self.show_lith_button.setIcon(icon)
-        self.show_lith_button.setObjectName("show_lith_button")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.show_lith_button)
-        self.gridLayout_2.addLayout(self.formLayout_2, 0, 0, 1, 2)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout_2.addItem(spacerItem2, 1, 2, 1, 1)
+        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
+        self.label.setSizePolicy(sizePolicy)
+        self.label.setMaximumSize(QtCore.QSize(400, 363))
+        self.label.setText("")
+        self.label.setPixmap(QtGui.QPixmap(":/set/image11212.png"))
+        self.label.setScaledContents(True)
+        self.label.setAlignment(QtCore.Qt.AlignBottom|QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft)
+        self.label.setWordWrap(False)
+        self.label.setObjectName("label")
+        self.gridLayout.addWidget(self.label, 3, 1, 7, 1)
+        self.horizontalLayout_5.addLayout(self.gridLayout)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1537, 25))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 885, 18))
         self.menubar.setObjectName("menubar")
         self.menuOpenGeoLogger = QtWidgets.QMenu(self.menubar)
         self.menuOpenGeoLogger.setObjectName("menuOpenGeoLogger")
@@ -885,8 +908,6 @@ class Ui_MainWindow(object):
         self.actionOpen.setObjectName("actionOpen")
         self.actionExport = QtWidgets.QAction(MainWindow)
         self.actionExport.setObjectName("actionExport")
-        self.actionDEM_Adjust = QtWidgets.QAction(MainWindow)
-        self.actionDEM_Adjust.setObjectName("actionDEM_Adjust")
         self.menuOpenGeoLogger.addAction(self.actionSave)
         self.menuOpenGeoLogger.addAction(self.actionSave_As)
         self.menuOpenGeoLogger.addAction(self.actionOpen)
@@ -900,53 +921,54 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label_7.setText(_translate("MainWindow", "Choose Drill Holes"))
+        self.label_9.setText(_translate("MainWindow", "Hole IDs"))
+        self.create_cross_section_button.setToolTip(_translate("MainWindow", "Create Section"))
+        self.view_3d_button.setToolTip(_translate("MainWindow", "View in 3D"))
+        self.label_6.setText(_translate("MainWindow", "Choose an Attribute to Plot"))
+        self.label_5.setText(_translate("MainWindow", "Structure Hole IDs"))
         self.help_button.setText(_translate("MainWindow", "?"))
         self.label_8.setText(_translate("MainWindow", "Help"))
+        self.label_4.setText(_translate("MainWindow", "Geochem Hole IDs"))
         self.ft.setText(_translate("MainWindow", "ft"))
         self.ft_4.setText(_translate("MainWindow", "m"))
-        self.label_4.setText(_translate("MainWindow", "Structure Hole IDs"))
-        self.label_6.setText(_translate("MainWindow", "Choose an Attribute to Plot"))
-        self.import_geochem_csv_button.setText(_translate("MainWindow", "Import Geochem CSV"))
-        self.stereonet_button.setText(_translate("MainWindow", "Stereonet"))
-        self.alpha_beta_converter_button.setText(_translate("MainWindow", "Alpha Beta Converter"))
-        self.rose_diagram_button.setText(_translate("MainWindow", "Rose Diagram"))
-        self.unoriented_button.setText(_translate("MainWindow", "Small Circles // \n"
-"Unoriented core"))
-        self.stylize_logs_button.setText(_translate("MainWindow", "Stylize Logs"))
-        self.clear_parameters_button.setText(_translate("MainWindow", "Clear Style"))
-        self.create_graphic_logs_button.setText(_translate("MainWindow", "Create Graphic Logs"))
-        self.label_3.setText(_translate("MainWindow", "Geochem Hole IDs"))
+        self.import_structure_csv_button.setToolTip(_translate("MainWindow", "Upload Structure CSV"))
+        self.show_structure_button.setToolTip(_translate("MainWindow", "View Structure Table"))
+        self.stereonet_button.setToolTip(_translate("MainWindow", "Create Stereonet Plot"))
+        self.unoriented_button.setToolTip(_translate("MainWindow", "Create Small Cirlce Stereonet Plot"))
+        self.rose_diagram_button.setToolTip(_translate("MainWindow", "Create Rose Diagram"))
+        self.alpha_beta_converter_button.setToolTip(_translate("MainWindow", "Aplha Beta to Azimuth and Dip Converter"))
+        self.label_13.setText(_translate("MainWindow", "Structure Plots"))
+        self.import_geochem_csv_button.setToolTip(_translate("MainWindow", "Upload Geochem CSV"))
+        self.show_geochem_button.setToolTip(_translate("MainWindow", "View Geochem Table"))
+        self.XYscatter_plots_button.setToolTip(_translate("MainWindow", "Create XY Scatter Plot(s)"))
+        self.factor_analysis_button.setToolTip(_translate("MainWindow", "Run a Factor Analysis"))
+        self.downhole_plots_button.setToolTip(_translate("MainWindow", "Create Downhole Line Plot(s)"))
+        self.correlation_matrices.setToolTip(_translate("MainWindow", "Create Correlation Matrix"))
+        self.custom_plot_button.setToolTip(_translate("MainWindow", "Import Custom Plot"))
+        self.label_15.setText(_translate("MainWindow", "Lithology Plots"))
+        self.label_14.setText(_translate("MainWindow", "Drill Hole Sections"))
+        self.import_lithology_csv_button.setToolTip(_translate("MainWindow", "Upload Lithology CSV"))
+        self.show_lith_button.setToolTip(_translate("MainWindow", "View Lithology Table"))
+        self.stylize_logs_button.setToolTip(_translate("MainWindow", "Stylize Lithology Column"))
+        self.clear_parameters_button.setToolTip(_translate("MainWindow", "Clear/Delete Previous Style"))
+        self.create_graphic_logs_button.setToolTip(_translate("MainWindow", "Create Graphic Log(s)"))
+        self.merge_plots.setToolTip(_translate("MainWindow", "Merge Graphic Log(s) with Downhole Line Plots"))
+        self.desurvey_button.setToolTip(_translate("MainWindow", "Desurvey Data Tool"))
+        self.upload_des_data.setToolTip(_translate("MainWindow", "Upload Desurveyed Data CSV"))
+        self.show_desurveyed_button.setToolTip(_translate("MainWindow", "Deserveyed Data Table"))
+        self.DEM_button.setToolTip(_translate("MainWindow", "Import DEM and Add Topography Line "))
+        self.manage_attributes_button.setToolTip(_translate("MainWindow", "Manage Plot Attributes"))
+        self.plot_settings_button.setToolTip(_translate("MainWindow", "Plot Settings"))
+        self.label_2.setText(_translate("MainWindow", "Lithology Holde IDs"))
         self.ft_2.setText(_translate("MainWindow", "ft"))
         self.ft_3.setText(_translate("MainWindow", "m"))
-        self.upload_des_data.setText(_translate("MainWindow", "Import Desurveyed Data"))
-        self.DEM_button.setText(_translate("MainWindow", "Upload DEM"))
-        self.manage_attributes_button.setText(_translate("MainWindow", "Manage Attributes"))
-        self.plot_settings_button.setText(_translate("MainWindow", "Plot Settings"))
-        self.create_cross_section_button.setText(_translate("MainWindow", "Create Cross Section"))
-        self.view_3d_button.setText(_translate("MainWindow", "View in 3D"))
-        self.label_10.setText(_translate("MainWindow", "<-"))
-        self.merge_plots.setText(_translate("MainWindow", "Merge Plot Windows"))
-        self.label_9.setText(_translate("MainWindow", "->"))
-        self.label_2.setText(_translate("MainWindow", "Lithology Holde IDs"))
-        self.downhole_plots_button.setText(_translate("MainWindow", "Downhole Line Plots"))
-        self.XYscatter_plots_button.setText(_translate("MainWindow", "XY Scatter Plots"))
-        self.factor_analysis_button.setText(_translate("MainWindow", "Factor Analysis"))
-        self.correlation_matrices.setText(_translate("MainWindow", "Correlation Matrices"))
-        self.custom_plot_button.setText(_translate("MainWindow", "Use Custom Plot"))
-        self.import_structure_csv_button.setText(_translate("MainWindow", "Import Structure CSV"))
-        self.label_5.setText(_translate("MainWindow", "Cross Section Visualizer"))
-        self.desurvey_button.setText(_translate("MainWindow", "Desurvey Your Data"))
-        self.import_lithology_csv_button.setText(_translate("MainWindow", "Import Lithology CSV"))
+        self.label_12.setText(_translate("MainWindow", "Geochem Plots"))
         self.menuOpenGeoLogger.setTitle(_translate("MainWindow", "File"))
         self.menuPreferences.setTitle(_translate("MainWindow", "Options"))
         self.actionSave.setText(_translate("MainWindow", "Save"))
         self.actionSave_As.setText(_translate("MainWindow", "Save As"))
         self.actionOpen.setText(_translate("MainWindow", "Open"))
         self.actionExport.setText(_translate("MainWindow", "Export CSVs"))
-        self.actionDEM_Adjust.setText(_translate("MainWindow", "DEM Adjust"))
-import Test_1_rc
-
 import pics
 
 
