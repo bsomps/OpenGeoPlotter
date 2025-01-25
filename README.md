@@ -17,7 +17,7 @@ Run the main script (OGP_v11.py) from the directory hosting the 'master' branch 
 
 `python OGP_v11.py`
 
-From here the GUI will open, and all functions are performed here. 
+From here the GUI will open, and all functions are performed within. 
 
 
 # **Application Use Instructions**
