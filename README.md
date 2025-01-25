@@ -83,9 +83,9 @@ You will need three CSV’s to desurvey your data. 1) A collar table 2) A survey
 
  To use this tool, you will need to follow these steps:
 
-- Load the data: Ensure it is formatted correctly with the necessary x, y, z coordinates, and the hole identifiers. Optionally, you can also have attribute columns, which are useful for representing different geological features. 
+- Load the data: Ensure it is desurveyed data (ie with the necessary x, y, z coordinates), and contains 'hole_id'. Optionally, you can also have as many attribute columns as you want.
 
-- Select the holes: You can choose as many drill holes as you'd like to include in your cross-section. This is done by providing the identifiers of the holes you're interested in.
+- Select the holes: You can choose as many drill holes as you'd like to include in your cross-section. This is done by checking the boxes of the holes you're interested in.
 
 - Set the azimuth: The azimuth represents the direction you are viewing. So if you set your azimuth to 0 or 360, you are viewing north and your cross section line runs east-west This can be any angle between 0 and 360 degrees.
 
