@@ -31,8 +31,8 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import QFrame
 import math
 import csv
-import Test_1_rc
-import OpenGeoUI2
+
+import OpenGeoUI6
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
 import pickle
@@ -43,7 +43,7 @@ from pandas import DataFrame
 from ColumnSelectionDialog import Ui_ColumnSelectionDialog
 import os
 from functools import partial
-from OpenGeoUI2 import Ui_MainWindow  
+from OpenGeoUI6 import Ui_MainWindow  
 import sys
 import numpy as np
 import seaborn as sns
@@ -1925,9 +1925,14 @@ class CrossSection(QDialog): # Cross section window
             # levels to be made transparent
             num_transparent_levels = 3
 
-            # Find collections corresponding to the first 3 contour levels and set their alpha to 0
-            for collection in contourf.collections[:num_transparent_levels]:
-                collection.set_alpha(0)  # Set alpha to 0 for these levels
+            try:
+                # Old method (pre-3.8)
+                for collection in contourf.collections[:num_transparent_levels]:
+                    collection.set_alpha(0)
+            except AttributeError:
+                # New method (3.8+)
+                alphas = [0 if i < num_transparent_levels else 0.5 for i in range(len(contourf.levels)-1)]
+                contourf.set_alpha(alphas)
 
                 
         # New DataFrame to store the extended data
@@ -4572,12 +4577,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
     def __init__(self):
         super().__init__()
         self.setupUi(self)  # Set up the GUI -----  OpenGeoUI.py
-        
-        
+        # Get the directory where the Python script is located
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Construct the path to the icon file in the 'images' folder
+        icon_path = os.path.join(script_dir, "images", "opvicon.ico")
+
         # Set the window icon
-        self.setWindowIcon(QtGui.QIcon(r"C:\Users\bsomp\Downloads\opvicon.ico"))
+        self.setWindowIcon(QtGui.QIcon(icon_path))
         
         
+            
         # Initialize models for the list views
         self.model_lithology = QStandardItemModel(self.hole_id_listView_lithology)
         self.model_geochem = QStandardItemModel(self.hole_id_listView_geochem)
@@ -5988,11 +5998,24 @@ def exception_hook(exctype, value, traceback):
     
     
 if __name__ == "__main__":
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)  # enables high dpi scaling
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)  # uses high dpi pixmaps
+    import sys
+    import os
+    from PyQt5.QtWidgets import QApplication
+    from PyQt5 import QtGui
+
+    # Enable high DPI scaling
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
+    # Create the application
     app = QApplication(sys.argv)
-    app.setWindowIcon(QtGui.QIcon(r"C:\Users\bsomp\Downloads\opvicon.ico"))
-    
+
+    # Get the directory where the Python script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Construct the path to the icon file in the 'images' folder
+    icon_path = os.path.join(script_dir, "images", "opvicon.ico")
+
     # Set the global stylesheet
     stylesheet = """
        QListView {
@@ -6001,10 +6024,14 @@ if __name__ == "__main__":
     """
     app.setStyleSheet(stylesheet)
 
+    # Create and set up the main window
     window = MainWindow()
+    window.setWindowIcon(QtGui.QIcon(icon_path))  # Set the icon for the main window
     window.showMaximized()
     window.setWindowTitle("Open Geo Plotter")
     
+    # Set a custom exception hook
     sys.excepthook = exception_hook
 
+    # Execute the application
     sys.exit(app.exec_())
