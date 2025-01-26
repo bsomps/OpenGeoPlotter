@@ -28,7 +28,7 @@ This application is designed to import, process, and visualize geological drill 
 
 When you start the application, you will be presented with a main window. The main window provides you with controls for importing data, selecting hole IDs, managing attributes, and generating plots.
 
-![User Interface](images/userinterface.png)
+![User Interface](images/GUI2.png)
 
 ### IMPORT DATA 
 
