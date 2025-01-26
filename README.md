@@ -58,7 +58,7 @@ Please ensure your column name for the hole ID is "hole_id" the program relies o
 
 ### SAVING DATA 
 
-Once your data is imported, you can click file → save to save the datasets in the program. The save will preserve the populated hole_id tables, but not the check state of the hole_ids. The save button will also save the state of your customized attributes. Please ensure to add “.pkl” to the end of your saving name. Example: dont save as “drill_holes” save as “drill_holes.pkl”
+Once your data is imported, you can click file → save to save the datasets in the program. The save will preserve the populated hole_id tables, but not the check state of the hole_ids. The save button will also save the state of your customized attributes.
 
     	
 ### GRAPHIC LOGS 
