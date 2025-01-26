@@ -34,6 +34,24 @@ When you start the application, you will be presented with a main window. The ma
 
 The import buttons allow you to import your drill hole data. The data should be in a .csv format and contain columns for "hole_id" and depth, as well as any other attributes you are interested in. The program relies on a good clean CSV and does not provide any data manipulation in the table once it is imported. Please ensure your data does not contain NaNs (less than symbols etc) or inf values for numerical data. Most importantly, please ensure your column name for the hole ID is "hole_id" the program relies on this exact naming of the hole ID column.
 
+Import Data Format Example: (data for cross section plots need "x", "y", and "z" ie desurveyed data)
+
+| hole_id | depth_from | depth_to | Mg_ppm | Al_ppm | Fe_ppm | Au_g/t |
+|---------|------------|----------|--------|--------|--------|--------|
+| DD001   | 13.716     | 15.24    | 32442  | 31183  | 152289 | 0.05   |
+| DD001   | 15.24      | 16.764   | 2836   | 53849  | 345177 | 0.5    |
+| DD001   | 16.764     | 18.288   | 37126  | 29243  | 134421 | 0.12   |
+| DD001   | 18.288     | 19.812   | 25293  | 17386  | 72387  | 0.4    |
+| DD001   | 19.812     | 21.336   | 47926  | 26293  | 143332 | 1.3    |
+| DD002   | 70.104     | 71.628   | 45624  | 19917  | 119791 | 2.1    |
+| DD002   | 71.628     | 73.152   | 110881 | 30380  | 211309 | 0.01   |
+| DD002   | 73.152     | 74.676   | 62033  | 30091  | 151070 | 0.06   |
+| DD002   | 74.676     | 76.2     | 64440  | 36860  | 172369 | 0.005  |
+| DD002   | 76.2       | 77.724   | 22518  | 25115  | 111662 | 0.09   |
+| DD002   | 77.724     | 79.248   | 37075  | 38539  | 198973 | 1.2    |
+| DD002   | 79.248     | 80.772   | 37703  | 33144  | 149092 | 0.1    |
+
+
 ### HOLE ID TABLES 
 
 Please ensure your column name for the hole ID is "hole_id" the program relies on this exact naming of the hole ID column. Each Table is populated with unique hole IDs corresponding to the type of CSV you import (Lithology, Structure, Geochem etc). You can select multiple holes, but you always must select at least one.
