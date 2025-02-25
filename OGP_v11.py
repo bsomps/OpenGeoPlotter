@@ -9,13 +9,16 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont, QColor
 from PyQt5 import uic
 import traceback
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from matplotlib.widgets import SpanSelector
 from collections import defaultdict
 from matplotlib.patches import Rectangle
 import json
+import matplotlib.image as mpimg
+import matplotlib.transforms as transforms
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QColor, QPalette, QIntValidator
+from PyQt5.QtGui import QColor, QPalette, QIntValidator, QPainter, QPixmap
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import pyqtSignal
 import copy
@@ -31,8 +34,8 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import QFrame
 import math
 import csv
-
-import OpenGeoUI2
+import matplotlib.image as mpimg
+import OpenGeoUI6
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
 import pickle
@@ -43,7 +46,7 @@ from pandas import DataFrame
 from ColumnSelectionDialog import Ui_ColumnSelectionDialog
 import os
 from functools import partial
-from OpenGeoUI2 import Ui_MainWindow  
+from OpenGeoUI6 import Ui_MainWindow  
 import sys
 import numpy as np
 import seaborn as sns
@@ -84,74 +87,82 @@ import matplotlib.transforms as mtransforms
 
 
 
-
-
-
-class ColumnSelectorDialog(QDialog): # Lithology parameters window
-
+class ColumnSelectorDialog(QDialog): # window for graphic logs stylization
     plot_requested = pyqtSignal(dict)
 
-    def __init__(self, df):
+    def __init__(self, df, previous_params=None):
         super().__init__()
 
-        # Create a QVBoxLayout for the dialog
+        self.df = df
+        self.previous_params = previous_params if previous_params else {}
+
+        # UI layout
         self.dialog_layout = QVBoxLayout(self)
 
-        # Create a QScrollArea
+        # Scroll area for parameters
         self.scroll = QScrollArea(self)
         self.dialog_layout.addWidget(self.scroll)
 
-        # widget of the QScrollArea
         self.scroll_content = QWidget(self.scroll)
         self.scroll.setWidget(self.scroll_content)
-        self.scroll.setWidgetResizable(True)  # Enable the scroll area to resize the widget
+        self.scroll.setWidgetResizable(True)
 
-        # QVBoxLayout for the content of the QScrollArea
         self.layout = QVBoxLayout(self.scroll_content)
-
         self.setWindowTitle("Column and Color Selector")
 
-        # Select lithology column
+        # Lithology Column Selection
         self.layout.addWidget(QLabel("Lithology Column:"))
         self.lithology_combo = QComboBox()
         self.lithology_combo.addItems(df.columns)
         self.layout.addWidget(self.lithology_combo)
 
-        # Select from_depth column
+        # From Depth Column Selection
         self.layout.addWidget(QLabel("From Depth Column:"))
         self.from_depth_combo = QComboBox()
         self.from_depth_combo.addItems(df.columns)
         self.layout.addWidget(self.from_depth_combo)
 
-        # Select to_depth column
+        # To Depth Column Selection
         self.layout.addWidget(QLabel("To Depth Column:"))
         self.to_depth_combo = QComboBox()
         self.to_depth_combo.addItems(df.columns)
         self.layout.addWidget(self.to_depth_combo)
-        
 
-        # Lithology column changed
-        self.lithology_combo.currentTextChanged.connect(self.lithology_column_changed)
-        self.from_depth_combo.currentTextChanged.connect(self.from_depth_column_changed)
-        self.to_depth_combo.currentTextChanged.connect(self.to_depth_column_changed)
-
-        # Hold color variables
+        # Store color/line width options
         self.color_buttons = {}
         self.length_spin_boxes = {}
-        self.df = df
-        
-        # Cancel or accept
+
+        # Accept/Cancel Buttons
         self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
         self.buttons.accepted.connect(self.accept)
         self.buttons.rejected.connect(self.reject)
         self.dialog_layout.addWidget(self.buttons)
-       
-        
-        self.setLayout(self.dialog_layout)  # Set dialog_layout as the layout of the dialog
+
+        self.setLayout(self.dialog_layout)
+
+        # Load previous selections
+        self.load_previous_selections()
+
+        # Connect lithology column change to refresh
+        self.lithology_combo.currentTextChanged.connect(self.lithology_column_changed)
+
+    def load_previous_selections(self):
+        if self.previous_params:
+            self.lithology_combo.setCurrentText(self.previous_params.get('lithology_column', ''))
+            self.from_depth_combo.setCurrentText(self.previous_params.get('from_column', ''))
+            self.to_depth_combo.setCurrentText(self.previous_params.get('to_column', ''))
+
+        # Only update lithology controls if a lithology column was explicitly chosen before
+        if self.previous_params and self.previous_params.get('lithology_column'):
+            self.update_lithology_controls()
+
     
     def lithology_column_changed(self, text):
-        self.lithology_column = text
-        self.update_lithology_controls()
+        if text:
+            self.resize(600, 600)  
+            self.update_lithology_controls()
+        else:
+            self.clear_lithology_controls()  
 
     def from_depth_column_changed(self, text):
         self.from_depth_column = text
@@ -171,25 +182,41 @@ class ColumnSelectorDialog(QDialog): # Lithology parameters window
         self.color_buttons.clear()
         self.length_spin_boxes.clear()
 
-        # Reference to self.lithology_column 
-        unique_values = self.df[self.lithology_column].unique()
+        lithology_column = self.lithology_combo.currentText()
+        if not lithology_column:
+            return  
+
+        unique_values = self.df[lithology_column].unique()
         for value in unique_values:
             color_button = QPushButton(f"Choose color for {value}")
+            color_button.setStyleSheet("background-color: white; border: 1px solid black;")  
             color_button.clicked.connect(lambda _, v=value: self.choose_color(v))
             self.layout.addWidget(color_button)
             self.color_buttons[value] = color_button
 
             length_spin_box = QDoubleSpinBox()
-            length_spin_box.setRange(0, 0.5)  # Adjust the range
-            length_spin_box.setSingleStep(0.1)  # Allow for decimal point precision
+            length_spin_box.setRange(0, 0.5)  
+            length_spin_box.setSingleStep(0.1)  
             self.layout.addWidget(QLabel(f"Choose length for {value}:"))
             self.layout.addWidget(length_spin_box)
             self.length_spin_boxes[value] = length_spin_box
+
+            # Restore previous selections if available
+            if self.previous_params.get('lithology_column') == lithology_column:
+                colors = self.previous_params.get("colors", {})
+                if value in colors:
+                    color_button.setText(f"{value} color: {colors[value]}")
+                    color_button.setStyleSheet(f"background-color: {colors[value]}; border: 1px solid black;")
+
+                lengths = self.previous_params.get("lengths", {})
+                if value in lengths:
+                    length_spin_box.setValue(lengths[value])
 
     def choose_color(self, value):
         color = QColorDialog.getColor()
         if color.isValid():
             self.color_buttons[value].setText(f"{value} color: {color.name()}")
+            self.color_buttons[value].setStyleSheet(f"background-color: {color.name()}; border: 1px solid black;")
 
     def get_colors(self):
         colors = {}
@@ -324,11 +351,11 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
 
         # Set the main layout
         layout = QtWidgets.QVBoxLayout()
-        layout.addLayout(button_layout)  # Add the horizontal layout of buttons at the top
+        layout.addLayout(button_layout)  
         layout.addWidget(self.toolbar)
-        layout.addWidget(self.canvas)  # Add the canvas below the buttons
+        layout.addWidget(self.canvas)  
 
-        # Create a central widget, set the layout, and make it the central widget of the window
+        # central widget of the window
         widget = QtWidgets.QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
@@ -358,8 +385,6 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
         
         # Calculate offsets using the correct method to iterate over Series objects
         self.elevation_offsets = {hole_id: highest_elevation - elevation for hole_id, elevation in elevation_data.items()}
-
-
 
 
     def updateLithDepthUnit(self, value): # Choose m of ft
@@ -394,7 +419,7 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
             for _, row in hole_data.iterrows():
                 from_depth = row[self.parameters['from_column']] - elevation_offset
                 to_depth = row[self.parameters['to_column']] - elevation_offset
-                # Rest of the plotting logic remains the same, using adjusted from_depth and to_depth
+                
 
             # Adjust y-axis limits based on elevation offset
             if len(self.hole_ids) == 1:
@@ -487,7 +512,7 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
             self.figure.savefig(file_name, dpi=200)
             
     def display_legend(self):
-        # Check if a legend window already exists and is visible; if so, bring it to the front
+        # Check if a legend window already exists
         if hasattr(self, 'legendWindow') and self.legendWindow.isVisible():
             self.legendWindow.raise_()
             self.legendWindow.activateWindow()
@@ -505,6 +530,7 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
         if self in self.main_window_reference.plot_windows:
             self.main_window_reference.plot_windows.remove(self)
         event.accept()  # window close
+        
 
 class DownholePlotWindow(QtWidgets.QMainWindow):  # Plot window for downhole geochem
     def __init__(self, main_window, data, hole_id, column_data, column_name, depth_column, plot_bars=False):
@@ -521,11 +547,8 @@ class DownholePlotWindow(QtWidgets.QMainWindow):  # Plot window for downhole geo
         self.plot_bars = plot_bars
         self.figure = Figure(figsize=(8, 12))
         self.canvas = FigureCanvas(self.figure)
-        
-        
        
         self.toolbar = NavigationToolbar(self.canvas, self)
-        
         
         self.depth_column = depth_column  # Save depth column
         self.geochem_depth_unit = "ft"  # Default to feet
@@ -607,8 +630,7 @@ class DownholePlotWindow(QtWidgets.QMainWindow):  # Plot window for downhole geo
         self.ax.set_ylabel(f'Depth ({self.geochem_depth_unit})')
         self.ax.set_title(f"Hole ID: {self.hole_id}")
        
-        
-
+       
         
 class CorrelationMatrixWindow(QtWidgets.QMainWindow): # window for correlation matrix
     def __init__(self, data, hole_id, tag='_ppm', parent=None):
@@ -625,7 +647,7 @@ class CorrelationMatrixWindow(QtWidgets.QMainWindow): # window for correlation m
         self.save_button.setText("Save plot")
         
         # Adjust the button size and position
-        self.save_button.resize(100,30)  # Size of button
+        self.save_button.resize(100,30)  
         self.save_button.move(20,20)
         
         self.save_button.clicked.connect(self.save_plot)
@@ -709,8 +731,7 @@ class ColumnSelectionDialog(QtWidgets.QDialog, Ui_ColumnSelectionDialog): # Wind
         layout.addWidget(self.attributes_label)
         layout.addWidget(self.plot_bars_checkbox)
         layout.addWidget(self.column_listWidget)
-        
-        
+               
         # Add the plot button
         layout.addWidget(self.plot_button)
 
@@ -726,19 +747,18 @@ class ColumnSelectionDialog(QtWidgets.QDialog, Ui_ColumnSelectionDialog): # Wind
     def load_depth_columns(self, depth_columns):
         self.depth_column_combo.addItems(depth_columns)
 
-            
-
 
 class CrossSection(QDialog): # Cross section window
     MAX_BAR_LENGTH = 50 # for auxiliary bar plot
-    def __init__(self, data, hole_ids, azimuth, attribute_column=None, attributes_model=None, attributes_dict=None, DEM_data=None, remove_outliers=True, remove_outliers_auxiliary=True, checkbox_add_grid_lines=True, checkbox_add_change_tick=True, upper_quantile=75.0, lower_quantile=25.0, IQR=3.0, x_buffer=120.0, y_buffer=0.05, line_width=3, selected_hole_ids_for_labels=None):
+    def __init__(self, data, hole_ids, azimuth, plot_settings_dialog, attribute_column=None, attributes_model=None, attributes_dict=None, DEM_data=None, remove_outliers=True, remove_outliers_auxiliary=True, checkbox_add_grid_lines=True, checkbox_add_change_tick=True, upper_quantile=75.0, lower_quantile=25.0, IQR=3.0, x_buffer=120.0, y_buffer=0.05, line_width=3, selected_hole_ids_for_labels=None, selected_colormap="Spectral_r"):
         super().__init__()
         print(selected_hole_ids_for_labels)  
 
-        # Storing the data, hole_ids, and azimuth as instance variables
+        # Storing the data
         self.data = data
         self.hole_ids = hole_ids
         self.azimuth = azimuth
+        self.plot_settings_dialog = plot_settings_dialog
         self.attribute_column = attribute_column
         self.attributes_dict = attributes_dict or {}
         self.categorical_encodings = {}
@@ -777,6 +797,7 @@ class CrossSection(QDialog): # Cross section window
         self.bar_vmax = None
         self.checkbox_add_grid_lines = checkbox_add_grid_lines
         self.checkbox_add_change_tick = checkbox_add_change_tick
+        self.selected_colormap = selected_colormap
         self.attributes_model = attributes_model
         self.setup_attribute_list_view()
         self.attributes_model.itemChanged.connect(self.on_attribute_selection_changed)
@@ -792,9 +813,7 @@ class CrossSection(QDialog): # Cross section window
         self.filtered_grid_points = None
         self.y_axis_scale_factor = 1
         self.selected_hole_id_for_topo = None
-
-        
-        
+              
         
         # Set up the main vertical layout for the QDialog
         main_layout = QVBoxLayout(self)
@@ -823,7 +842,7 @@ class CrossSection(QDialog): # Cross section window
         # Create a QVBoxLayout for the buttons
         button_layout = QVBoxLayout()
         
-        # Add "Topo Line Settings" button
+        # Add Topo Line Settings button
         self.topo_line_settings_button = QPushButton("Topo Line Settings", self)
         self.topo_line_settings_button.clicked.connect(self.on_topo_line_settings_clicked)
         button_layout.addWidget(self.topo_line_settings_button)
@@ -890,17 +909,16 @@ class CrossSection(QDialog): # Cross section window
         attribute_list_label.setFont(font)
 
         # Add space above the label
-        button_layout.addSpacing(20)  # Adjust the spacing value as needed
+        button_layout.addSpacing(20)  
 
         # Add the QLabel to the layout
         button_layout.addWidget(attribute_list_label)
 
         # Add space below the label
-        button_layout.addSpacing(10)  # Adjust the spacing value as needed
+        button_layout.addSpacing(10)  
 
         # Add the attribute list
-        button_layout.addWidget(self.attribute_list_view)
-        
+        button_layout.addWidget(self.attribute_list_view)       
         
         # Add a label for the azimuth control
         azimuth_label = QLabel("Change Azimuth")
@@ -914,7 +932,7 @@ class CrossSection(QDialog): # Cross section window
 
         # Add QSpinBox for azimuth
         self.azimuth_spin_box = QSpinBox(self)
-        self.azimuth_spin_box.setRange(0, 360)  # Assuming azimuth range is 0-360 degrees
+        self.azimuth_spin_box.setRange(0, 360)  
         # Set the value of azimuth spin box as an integer
         self.azimuth_spin_box.setValue(int(self.azimuth))
         self.azimuth_spin_box.valueChanged.connect(self.on_azimuth_changed)
@@ -926,8 +944,7 @@ class CrossSection(QDialog): # Cross section window
         button_layout.addWidget(self.redraw_plot_button)
         
         # Add a stretch to push the buttons to the top
-        button_layout.addStretch(1)
-        
+        button_layout.addStretch(1)       
        
         # Add the QVBoxLayout to the QHBoxLayout
         self.layout.addLayout(button_layout, stretch=1)
@@ -1140,7 +1157,7 @@ class CrossSection(QDialog): # Cross section window
         self.select_contour_column()
 
         # set the flag and replot
-        if hasattr(self, 'contour_column'):  # Check if the column was successfully selected
+        if hasattr(self, 'contour_column'):  
             self.generate_contours_flag = True
             self.plot()  # Replot with contours
             
@@ -1487,7 +1504,6 @@ class CrossSection(QDialog): # Cross section window
         self.data['y_cross'] = self.data['x'] * np.sin(np.deg2rad(self.azimuth)) + self.data['y'] * np.cos(np.deg2rad(self.azimuth))
         
 
-
     def column_type(self, column, dataframe):
         if pd.api.types.is_numeric_dtype(dataframe[column]):
             return 'continuous'
@@ -1545,9 +1561,7 @@ class CrossSection(QDialog): # Cross section window
         
         ##print("Elevation Profile Extracted")
         ##print("Profile Length:", len(profile))
-        ##print("Profile values range from:", profile.min(), "to", profile.max())
-        
-        
+        ##print("Profile values range from:", profile.min(), "to", profile.max())              
         ##print("Elevation Profile:", profile)
         
         return profile
@@ -1609,8 +1623,8 @@ class CrossSection(QDialog): # Cross section window
         x_cross = x * np.cos(np.deg2rad(self.azimuth)) - y * np.sin(np.deg2rad(self.azimuth))
         y_cross = x * np.sin(np.deg2rad(self.azimuth)) + y * np.cos(np.deg2rad(self.azimuth))
         return x_cross, y_cross
-
         
+            
     def plot_elevation_profile_on_existing_plot(self, ax, adjusted_profile, start_point, end_point):
         # Calculate the x values (distance along the profile)
         x_values = np.linspace(start_point[0], end_point[0], len(adjusted_profile))
@@ -1717,7 +1731,7 @@ class CrossSection(QDialog): # Cross section window
         if bar_column is None:
             return
     
-        x_position = -0.11  # places the legend slightly to the right of the plot area.
+        x_position = -0.11  # legend slightly to the right of the plot area.
         
         # Start and end y-positions for the bar
         y_position_max = 0.15
@@ -1776,16 +1790,13 @@ class CrossSection(QDialog): # Cross section window
 
             if value_in_range:
                 # For values within the range, return the normal style
-                return cmap(norm(current_value)), self.line_width, 1.0, 5  # Normal alpha and zorder
+                return cmap(norm(current_value)), self.line_width, 1.0, 5  
             else:
                 # For values outside the range, return the 'inactive' style
                 return 'black', 0.3, 1, 4  # Reduced alpha and lower zorder
         else:
             # If no isolation is set, return the normal style
-            return cmap(norm(current_value)), self.line_width, 1.0, 5  # Normal alpha and zorder
-
-
-
+            return cmap(norm(current_value)), self.line_width, 1.0, 5  
 
 
     def plot(self): # Main drill hole plotting function
@@ -1800,8 +1811,7 @@ class CrossSection(QDialog): # Cross section window
         self.figure.clear()  # Clear the entire figure
         ax = self.figure.add_subplot(111)
         
-        
-        
+               
         # Re-add the pencil drawings if there
         self.drawing_lines = []  # Clear existing line references
         for xdata, ydata in pencil_line_data:
@@ -1917,7 +1927,7 @@ class CrossSection(QDialog): # Cross section window
                                                       np.column_stack([x_cross, z])).min(axis=1).reshape(extended_grid_x.shape) < nearest_distance_threshold))
 
             # Apply the refined mask
-            z_pred[~mask] = np.nan  # Set values outside the refined mask to NaN or a predefined boundary value
+            z_pred[~mask] = np.nan  
 
             # Plotting
             contourf = ax.contourf(extended_grid_x, extended_grid_z, z_pred, levels=10, cmap='Spectral_r', alpha=0.5, zorder=0)
@@ -1949,26 +1959,35 @@ class CrossSection(QDialog): # Cross section window
             # Initialize a list to store colors for each point
             hole_colors = []
             
+            
             # Continuous data plotting
             if self.attribute_column:
                 if self.column_type(self.attribute_column, self.data) == 'continuous':
-                    cmap = plt.get_cmap('Spectral_r')
+                    # Use self.selected_colormap 
+                    selected_colormap = self.selected_colormap if hasattr(self, "selected_colormap") else "Spectral_r"
+                    
+                    
+                    # Use the selected colormap
+                    cmap = plt.get_cmap(selected_colormap)
                     norm = plt.Normalize(vmin=vmin, vmax=vmax)
+
                     for i in range(1, len(hole_data)):
                         current_value = hole_data[self.attribute_column].iloc[i]
                         x_values = hole_data['x_cross' if not self.is_plan_view else 'x'].iloc[i-1:i+1]
                         y_values = hole_data['z' if not self.is_plan_view else 'y'].iloc[i-1:i+1]
-                        if pd.notna(current_value):  # Only plot when current data point has attribute data
+
+                        if pd.notna(current_value):  
                             color, line_width, alpha, zorder = self.determine_plot_style(current_value, hole_data, i, cmap, norm)
-                            
-                            ax.plot(x_values, y_values, color=color, linewidth=line_width, alpha=alpha, zorder=zorder, picker=True, pickradius=50, label=str(i))
+
+                            ax.plot(x_values, y_values, color=color, linewidth=line_width, alpha=alpha, 
+                                    zorder=zorder, picker=True, pickradius=50, label=str(i))
                         else:
                             ax.plot(x_values, y_values, color="black", linewidth=0.3, alpha=1, zorder=4, picker=True, pickradius=50)
 
                     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
                     sm.set_array([])
 
-                
+              
                 # Categorical data plotting
                 else: 
                     if self.attribute_column in self.attributes_dict:
@@ -2190,6 +2209,26 @@ class CrossSection(QDialog): # Cross section window
             ax.set_xlabel('Easting', labelpad=15)
             ax.set_ylabel('Northing', labelpad=15)
             ax.set_aspect('equal')
+
+            ax.ticklabel_format(style='plain', useOffset=False)
+            x_step = (max_x_plan - min_x_plan) / 5  
+            y_step = (max_y - min_y) / 5  
+
+            
+            xticks = np.arange(min_x_plan, max_x_plan + x_step, x_step)
+            yticks = np.arange(min_y, max_y + y_step, y_step)
+
+          
+            ax.set_xticks(xticks)
+            ax.set_xticklabels([f"{int(tick)}E" for tick in xticks], fontsize=8)
+
+            ax.set_yticks(yticks)
+            ax.set_yticklabels([f"{int(tick)}N" for tick in yticks], fontsize=8)
+
+            # Add grid lines 
+            ax.grid(True, linestyle='--', linewidth=0.5)
+
+
             
         else: # For cross-section view
             if self.checkbox_add_change_tick:
@@ -2204,9 +2243,9 @@ class CrossSection(QDialog): # Cross section window
                 # Adjust y-axis ticks and labels
                 ax.tick_params(axis='y', direction='in', length=30, width=0.3, pad=-2)
                 for label in ax.get_yticklabels():
-                    label.set_fontsize(8)  # Set font size
-                    label.set_alpha(0.5)   # Set transparency
-                    label.set_verticalalignment('bottom')  # Adjust vertical alignment if necessary
+                    label.set_fontsize(8)  
+                    label.set_alpha(0.5)   
+                    label.set_verticalalignment('bottom')  
                     label.set_horizontalalignment('left')
 
                 # Hide y-axis ticks and labels that are above self.max_z
@@ -2221,7 +2260,7 @@ class CrossSection(QDialog): # Cross section window
                     
 
                 # Adjust x-axis ticks and labels
-                ax.tick_params(axis='x', direction='in', length=30, width=0.3, pad=-2)  # Thinner and longer x-axis ticks
+                ax.tick_params(axis='x', direction='in', length=30, width=0.3, pad=-2)  
                 # Calculate and set dynamic ticks using distance
                 tick_interval = self.calculate_tick_interval(min_x_with_buffer, max_x_with_buffer)
                 offset = -min_x_with_buffer
@@ -2232,7 +2271,7 @@ class CrossSection(QDialog): # Cross section window
                 ax.set_xticklabels(tick_labels, rotation=90, ha='left', va='top', fontsize=8)  # Align right to the tick
                 for label in ax.get_xticklabels():
                     label.set_alpha(0.5)
-                    label.set_verticalalignment('bottom')  # Adjust vertical alignment if necessary
+                    label.set_verticalalignment('bottom')  
                     label.set_horizontalalignment('left')
                     # Manually adjust label position using transform
                     offset = mtransforms.ScaledTranslation(2/72, 0, ax.figure.dpi_scale_trans)
@@ -2261,8 +2300,7 @@ class CrossSection(QDialog): # Cross section window
                 tick_labels = [f"{int(tick + offset)}" for tick in tick_values]  # Adjust for offset
                 ax.set_xticks(tick_values)
                 ax.set_xticklabels(tick_labels)
-                
-                
+
 
             # Apply the y-axis scale factor
             if self.y_axis_scale_factor != 1:
@@ -3983,7 +4021,7 @@ class ContinuousDesurveyCalc(QDialog): # Misnamed should be "non-continuous"
      
         
              
-class PlotSettingsDialog(QDialog): # Settings window for cross section plot
+class PlotSettingsDialog(QDialog):  # Settings window for cross section plot
     def __init__(
         self, hole_ids, remove_outliers=True, remove_outliers_auxiliary=False,
         add_grid_lines=False, upper_quantile=75, lower_quantile=25, IQR=3,
@@ -4054,7 +4092,6 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
         self.grid_layout.addWidget(self.checkbox_add_grid_lines)
         
         # add a "Move tick markers in" checkbox
-        
         self.checkbox_add_change_tick = QCheckBox("Move Tick Markers Inside Plot")
         self.grid_layout.addWidget(self.checkbox_add_change_tick)
         
@@ -4068,12 +4105,30 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
         self.hole_id_list_view.setModel(self.hole_id_list_model)
         self.hole_labels_layout.addWidget(self.hole_id_list_view)
 
+        # Add a QComboBox for colormap selection
+        self.colormap_layout = QVBoxLayout()
+        self.colormap_label = QLabel("Select Colormap:")
+        self.colormap_combo = QComboBox()
+        
+        # Get continuous colormaps from Matplotlib
+        self.continuous_colormaps = plt.colormaps()  
+        self.colormap_combo.addItems(self.continuous_colormaps)
+        
+        # Set default colormap to 'spectral_r'
+        default_colormap = 'Spectral_r'
+        if default_colormap in self.continuous_colormaps:
+            self.colormap_combo.setCurrentText(default_colormap)
+        
+        self.colormap_layout.addWidget(self.colormap_label)
+        self.colormap_layout.addWidget(self.colormap_combo)
+        
         # Add layouts to main layout
         main_layout.addLayout(self.outliers_layout)
         main_layout.addLayout(self.axis_limits_layout)
         main_layout.addLayout(self.line_width_layout)
         main_layout.addLayout(self.hole_labels_layout)
-        main_layout.addLayout(self.grid_layout) 
+        main_layout.addLayout(self.grid_layout)
+        main_layout.addLayout(self.colormap_layout)  # Add colormap selection to main layout
 
         # Set the main layout
         self.setLayout(main_layout)
@@ -4119,7 +4174,8 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
                       y_buffer=0.05,
                       line_width=3,
                       selected_hole_ids_for_labels=None):
-        # Set defaults or use passed-in settings
+
+        # Set all default values
         self.checkbox_remove_outliers.setChecked(remove_outliers)
         self.checkbox_aux_plot.setChecked(remove_outliers_auxiliary)
         self.checkbox_add_grid_lines.setChecked(add_grid_lines)
@@ -4131,15 +4187,16 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
         self.line_edit_y_buffer.setText(str(y_buffer))
         self.line_edit_line_width.setText(str(line_width))
 
-        # Initialize hole_id list view checkboxes
+        # Ensure hole IDs are properly restored
         if selected_hole_ids_for_labels is not None:
+            selected_hole_ids_for_labels = set(selected_hole_ids_for_labels)  
             for row in range(self.hole_id_list_model.rowCount()):
                 item = self.hole_id_list_model.item(row)
                 if item.text() in selected_hole_ids_for_labels:
-                    item.setCheckState(Qt.Checked)
+                    item.setCheckState(Qt.Checked)  
                 else:
                     item.setCheckState(Qt.Unchecked)
-        
+
     
     def toggle_select_all_hole_ids(self, state):
         # Select or deselect all hole_id checkboxes based on the state of the select_all_checkbox
@@ -4148,23 +4205,31 @@ class PlotSettingsDialog(QDialog): # Settings window for cross section plot
             item.setCheckState(state)
             
     def get_selected_hole_ids(self):
-        # Get a list of selected hole_ids
         selected_hole_ids = []
         for row in range(self.hole_id_list_model.rowCount()):
             item = self.hole_id_list_model.item(row)
             if item.checkState() == Qt.Checked:
                 selected_hole_ids.append(item.text())
+
         return selected_hole_ids
+
 
         
     def get_selected_line_width(self):
         line_width = float(self.line_edit_line_width.text())
         return max(1.0, min(line_width, 5.0))  # Limit between 1 and 5
 
+    def get_selected_colormap(self):
+        return self.colormap_combo.currentText()
+        
+    def on_colormap_changed(self):
+        selected_colormap = self.get_selected_colormap()
+        print(f"Colormap changed to: {selected_colormap}") 
 
     def connect_signals(self):
         self.checkbox_remove_outliers.toggled.connect(self.toggle_remove_outliers)
-
+        self.colormap_combo.currentIndexChanged.connect(self.on_colormap_changed) 
+		
     def toggle_remove_outliers(self, checked):
         self.line_edit_upper_quantile.setEnabled(checked)
         self.line_edit_lower_quantile.setEnabled(checked)
@@ -4201,10 +4266,10 @@ class CombinedPlotWindow(QtWidgets.QMainWindow):
 
         # Create a vertical layout with minimal margins and spacing
         layout = QtWidgets.QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)  # Reduce the margins to utilize maximum space
-        layout.setSpacing(0)  # Reduce spacing between widgets
-        layout.addLayout(top_layout)  # Add the horizontal layout containing the toolbar and button
-        layout.addWidget(self.canvas)  # Add the canvas to the layout
+        layout.setContentsMargins(0, 0, 0, 0)  
+        layout.setSpacing(0)  
+        layout.addLayout(top_layout)  
+        layout.addWidget(self.canvas)  
         
         # Create a central widget and set the layout
         centralWidget = QtWidgets.QWidget()
@@ -4611,11 +4676,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         self.DEM_data = None
         self.selected_parameters = None
         self.combined_plot_window = None
+        self.selected_colormap = "Spectral_r"  # ✅ Default to a valid colormap name
+
         
         
         self.factor_analysis_dialog = FactorAnalysisDialog(self)
         self.help_button.clicked.connect(self.on_help_button_clicked)
         self.current_save_file = None
+        self.plot_settings_dialog = PlotSettingsDialog(hole_ids=[])  # Initialize with an empty list or valid hole IDs
+        
+
         
         
         self.checkbox_add_grid_lines = False
@@ -4806,12 +4876,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         
         
     def on_plot_settings_clicked(self):
-    
-        # Get all hole_ids from the model
         all_hole_ids = [self.model_cross.item(row).text() for row in range(self.model_cross.rowCount())]
-
-        # Create the PlotSettingsDialog with all hole_ids and current settings
         plot_settings_dialog = PlotSettingsDialog(all_hole_ids)
+
+        # Restore all previously saved settings
         plot_settings_dialog.init_defaults(
             remove_outliers=self.remove_outliers,
             remove_outliers_auxiliary=self.remove_outliers_auxiliary,
@@ -4824,45 +4892,40 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
             y_buffer=self.y_buffer,
             line_width=self.line_width,
             selected_hole_ids_for_labels=self.selected_hole_ids_for_labels
-)
-            
+        )
+
+        # Restore previous colormap selection 
+        if hasattr(self, 'selected_colormap') and self.selected_colormap:
+            plot_settings_dialog.colormap_combo.setCurrentText(self.selected_colormap)
+
+        
         if plot_settings_dialog.exec_():
             try:
-                # Retrieve and store the settings
+                # Retrieve and store settings
                 self.remove_outliers = plot_settings_dialog.checkbox_remove_outliers.isChecked()
-                # Retrieve and store the settings for "Apply to Auxiliary Bar Plot"
                 self.remove_outliers_auxiliary = plot_settings_dialog.checkbox_aux_plot.isChecked()
                 self.checkbox_add_grid_lines = plot_settings_dialog.checkbox_add_grid_lines.isChecked()
                 self.checkbox_add_change_tick = plot_settings_dialog.checkbox_add_change_tick.isChecked()
-                
-                upper_quantile_text = plot_settings_dialog.line_edit_upper_quantile.text()
-                self.upper_quantile = float(upper_quantile_text) if upper_quantile_text else 75.0  # default value
-                
-                lower_quantile_text = plot_settings_dialog.line_edit_lower_quantile.text()
-                self.lower_quantile = float(lower_quantile_text) if lower_quantile_text else 25.0  # default value
-                
-                IQR_text = plot_settings_dialog.line_edit_IQR.text()
-                self.IQR = float(IQR_text) if IQR_text else 3  # default value
-                
-                x_buffer_text = plot_settings_dialog.line_edit_x_buffer.text()
-                self.x_buffer = float(x_buffer_text) if x_buffer_text else 120.0  # default value
-                
-                y_buffer_text = plot_settings_dialog.line_edit_y_buffer.text()
-                self.y_buffer = float(y_buffer_text) if y_buffer_text else 0.05  # default value
-                
-                line_width_text = plot_settings_dialog.line_edit_line_width.text()
-                self.line_width = float(line_width_text) if line_width_text else 3.0  # default value
-                self.line_width = max(1.0, min(self.line_width, 5.0))  # Limit between 1 and 5
-              
+
+                self.upper_quantile = float(plot_settings_dialog.line_edit_upper_quantile.text() or 75.0)
+                self.lower_quantile = float(plot_settings_dialog.line_edit_lower_quantile.text() or 25.0)
+                self.IQR = float(plot_settings_dialog.line_edit_IQR.text() or 3.0)
+                self.x_buffer = float(plot_settings_dialog.line_edit_x_buffer.text() or 120.0)
+                self.y_buffer = float(plot_settings_dialog.line_edit_y_buffer.text() or 0.05)
+                self.line_width = max(1.0, min(float(plot_settings_dialog.line_edit_line_width.text() or 3.0), 5.0))
+
+                # Retrieve selected hole IDs
                 self.selected_hole_ids_for_labels = plot_settings_dialog.get_selected_hole_ids()
                 
 
+                # Retrieve selected colormap
+                self.selected_colormap = plot_settings_dialog.get_selected_colormap()
+                
 
             except ValueError:
                 QMessageBox.critical(self, "Error", "Invalid input in one or more fields")
 
 
-        
     def load_DEM(self):
         dem_file, _ = QFileDialog.getOpenFileName(
             self, "Open DEM File", "", "DEM Files (*.tif);;All Files (*)"
@@ -4909,7 +4972,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                 elif dialog.choice == 'ContinuousDesurveyCalc':
                     self.desurvey_dialog = ContinuousDesurveyCalc(self)
 
-                # Now you can execute the chosen dialog
+                
                 self.desurvey_dialog.exec_()
 
         except Exception as e:
@@ -4921,7 +4984,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
             QMessageBox.warning(self, "No data", "Please load geochemistry data first")
             return
 
-        # Count checked items in self.model_geochem, excluding the 'Select All' option
+        
         checked_items = sum(
             self.model_geochem.item(index).checkState() == Qt.Checked
             for index in range(1, self.model_geochem.rowCount())  # Start from index 1
@@ -5256,7 +5319,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                 # Initialize self.selected_hole_ids_for_labels with all hole IDs
                 self.selected_hole_ids_for_labels = list(map(str, unique_hole_ids))
 
-                # Print out self.selected_hole_ids_for_labels to check it is populated correctly
+                
                 print("MainWindow - selected_hole_ids_for_labels after loading data: ", self.selected_hole_ids_for_labels)
                     
                 
@@ -5328,7 +5391,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                 cross_section = CrossSection(
                     data=self.data_desurveyed, 
                     hole_ids=selected_hole_ids, 
-                    azimuth=azimuth, 
+                    azimuth=azimuth,
+                    plot_settings_dialog=self.plot_settings_dialog,
                     attribute_column=attribute,  
                     attributes_model=self.model_attri, 
                     attributes_dict=self.attributes_dict, 
@@ -5336,14 +5400,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
                     remove_outliers=self.remove_outliers, 
                     upper_quantile=self.upper_quantile, 
                     lower_quantile=self.lower_quantile, 
-                    IQR=self.IQR, 
+                    IQR=self.IQR,
                     x_buffer=self.x_buffer, 
                     y_buffer=self.y_buffer, 
                     line_width=self.line_width, 
                     selected_hole_ids_for_labels=self.selected_hole_ids_for_labels, 
                     remove_outliers_auxiliary=self.remove_outliers_auxiliary, 
                     checkbox_add_grid_lines=self.checkbox_add_grid_lines,
-                    checkbox_add_change_tick=self.checkbox_add_change_tick
+                    checkbox_add_change_tick=self.checkbox_add_change_tick,
+                    selected_colormap=self.selected_colormap
                 )  
                 cross_section.show()  # Show the CrossSection window immediately
                 self.cross_section_dialogs.append(cross_section)  # Append the dialog to the list
@@ -5653,20 +5718,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
 
         data = self.data_lithology
 
-        dialog = ColumnSelectorDialog(data)
+        # Do not pass lithology_column if not previously selected
+        previous_params = self.selected_parameters if hasattr(self, 'selected_parameters') else None
+        if previous_params and 'lithology_column' not in previous_params:
+            previous_params['lithology_column'] = ''  
+
+        dialog = ColumnSelectorDialog(data, previous_params)
         result = dialog.exec_()
-        if result == QDialog.Accepted:
-            self.selected_parameters = dialog.get_parameters()  # Store the user's selections in an instance variable
-            print("Stored parameters:", self.selected_parameters)  
-        else:
-            QMessageBox.warning(self, "No parameters selected", "Please select parameters")
-
-        QMessageBox.information(self, "Success", "Log parameters saved!")
-
         
+        if result == QDialog.Accepted:
+            self.selected_parameters = dialog.get_parameters()  # Save the updated parameters
+
+            if not self.selected_parameters:
+                QMessageBox.warning(self, "No parameters selected", "Please select parameters")
+            else:
+                print("Stored parameters:", self.selected_parameters)
+                QMessageBox.information(self, "Success", "Log parameters saved!")
+
+
+
     def clear_parameters(self):
         self.selected_parameters = None
         QMessageBox.information(self, "Parameters cleared", "Stylization parameters have been cleared.")
+
+
     
     def create_correlation_matrices(self):
         if self.data_geochem is None:
