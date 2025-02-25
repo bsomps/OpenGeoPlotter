@@ -35,7 +35,7 @@ from PyQt5.QtWidgets import QFrame
 import math
 import csv
 import matplotlib.image as mpimg
-import OpenGeoUI6
+import OpenGeoUI2
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
 import pickle
@@ -46,7 +46,7 @@ from pandas import DataFrame
 from ColumnSelectionDialog import Ui_ColumnSelectionDialog
 import os
 from functools import partial
-from OpenGeoUI6 import Ui_MainWindow  
+from OpenGeoUI2 import Ui_MainWindow  
 import sys
 import numpy as np
 import seaborn as sns
