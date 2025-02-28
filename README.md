@@ -201,3 +201,10 @@ This tool will plot your strike and dip values on a stereonet and rose diagram. 
 ### STEREONET SMALL CIRCLES FOR UNORIENTED CORE
 
 Assign a drill hole strike and drill hole dip column to your dataset where each row is a calculated  strike and dip based on your surrey data. Using your TCA (to core axis) measurements on your structures you can be plotted as small circles on a stereonet. 
+
+
+# **Contributions**
+
+I welcome issues and contributions! If you find a bug, have a feature request, or want to improve the project, feel free to open an issue or submit a pull request.
+
+To contribute, fork the repository, create a branch, make your changes, and open a pull request with a brief description. Discussions and feedback are always appreciated. Thanks for contributing!
