@@ -1,6 +1,10 @@
 
 # **Installation Instructions**
 
+If running Windows, you can download a `.exe` [here](https://github.com/bsomps/OpenGeoPlotter/releases).
+
+---
+
 ***Requires Python version 3.11 or up***
 
 
