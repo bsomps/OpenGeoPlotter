@@ -959,7 +959,7 @@ class Ui_MainWindow(object):
         self.DEM_button.setToolTip(_translate("MainWindow", "Import DEM and Add Topography Line "))
         self.manage_attributes_button.setToolTip(_translate("MainWindow", "Manage Plot Attributes"))
         self.plot_settings_button.setToolTip(_translate("MainWindow", "Plot Settings"))
-        self.label_2.setText(_translate("MainWindow", "Lithology Holde IDs"))
+        self.label_2.setText(_translate("MainWindow", "Lithology Hole IDs"))
         self.ft_2.setText(_translate("MainWindow", "ft"))
         self.ft_3.setText(_translate("MainWindow", "m"))
         self.label_12.setText(_translate("MainWindow", "Geochem Plots"))
