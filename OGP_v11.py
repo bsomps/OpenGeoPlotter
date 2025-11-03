@@ -84,7 +84,14 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QComboBox, QPushButton, QColor
 from PyQt5.QtWidgets import QProgressDialog
 from OGP_help import HELP_TEXT
 import matplotlib.transforms as mtransforms
+from PyQt5.QtGui import QIcon
 
+
+import ctypes
+from ctypes import wintypes
+
+myappid = 'com.opengeoplotter.app.1.0'  # Arbitrary unique string
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 
 class ColumnSelectorDialog(QDialog): # window for graphic logs stylization
@@ -480,6 +487,12 @@ class PlotWindow(QtWidgets.QMainWindow): # Graphic log plot window
 
             ax.set_xlabel('')
             ax.set_xticks([])
+            
+            # y-label
+            if self.lith_depth_unit == "ft":
+                ax.set_ylabel("Depth (ft)")
+            else:
+                ax.set_ylabel("Depth (m)")
 
             if self.lith_depth_unit == "ft":
                 ax.annotate(f'{max_depth} ft', xy=(0, max_depth), xytext=(10, -10), textcoords='offset points')
@@ -592,7 +605,6 @@ class DownholePlotWindow(QtWidgets.QMainWindow):  # Plot window for downhole geo
         self.show()
 
     def plot_data(self):
-
         # Create a mask where the column_data is not zero
         mask = self.column_data != 0
 
@@ -604,23 +616,36 @@ class DownholePlotWindow(QtWidgets.QMainWindow):  # Plot window for downhole geo
         self.ax = self.figure.add_subplot(111)
 
         if self.plot_bars:
-            width = 3  # Adjust as necessary
+            width = 3 
             self.ax.barh(y, x, align='center', height=width, color='gray')  # Using horizontal bars
         else:
-            self.ax.plot(x, y)
-        self.ax.invert_yaxis()  # To display depth with min at the top and max at the bottom
-        
-        # Set the y-axis limits based on the minimum and maximum depth values in the data
-        self.ax.set_ylim(y.max(), y.min())  # Use the actual depth data
+            self.ax.plot(
+                x, y,
+                linestyle='-',     
+                marker='o',        
+                markersize=1.5,      
+                linewidth=0.75,     
+                color='#666666'  
+            )
 
-        # Set the x-axis limits based on the minimum and maximum values in the data
+        # Invert y-axis to show depth increasing downward
+        self.ax.invert_yaxis()
+
+        # Set y-axis limits based on depth values
+        self.ax.set_ylim(y.max(), y.min())
+
+        # Set x-axis limits with a little headroom
         upper_limit = x.max() + 0.10 * x.max()
         self.ax.set_xlim(0, upper_limit)
 
+        # grid lines
+        self.ax.grid(True, which='both', linestyle=':', linewidth=0.7, color='gray', alpha=0.7)
 
-        self.setWindowTitle(f"Hole: {self.hole_id} - {self.column_name}")  # Updated
-        
-        # make the plot fit the pop up window 
+        # Title and formatting
+        self.ax.set_title(f"Hole ID: {self.hole_id}")
+        self.setWindowTitle(f"Hole: {self.hole_id} - {self.column_name}")
+
+        # Fit the plot nicely inside the popup window
         self.figure.subplots_adjust(left=0.18)
 
         
@@ -4291,106 +4316,137 @@ class CombinedPlotWindow(QtWidgets.QMainWindow):
     def merge_plots(self):
         # Assumes all geochem plots have the same depth (Y-axis) range
         num_plots = 1 + len(self.geochem_plot_windows)
-        
+
         # Create subplots side by side
         self.axs = self.figure.subplots(1, num_plots)
-        print("Total plot_windows:", len(self.plot_windows))
-        print("Total geochem_plot_windows:", len(self.geochem_plot_windows))
-        print("Total axes (axs):", len(self.axs))
-        
+
         # If only one plot, make it to a list
         if not isinstance(self.axs, np.ndarray):
             self.axs = [self.axs]
 
-           
-        # Extract y-axis limits from the graphic log
+        # get depth extents from the graphic log
         graphic_log_window = self.plot_windows[0]  # Since there's only one graphic log plot
-        ax = graphic_log_window.figure.axes[0]
-        global_min_depth, global_max_depth = ax.get_ylim()
-        y_ticks_graphic_log = ax.get_yticks()
-        y_ticklabels_graphic_log = [label.get_text() for label in ax.get_yticklabels()]
+        source_ax = graphic_log_window.figure.axes[0]
+        global_min_depth, global_max_depth = source_ax.get_ylim()
+        y_ticks_graphic_log = source_ax.get_yticks()
+        y_ticklabels_graphic_log = [label.get_text() for label in source_ax.get_yticklabels()]
 
-        # Merge lithology plots
+        
         for i, window in enumerate(self.plot_windows):
             ax = self.axs[i]
-            
+
             ax.set_ylim(global_max_depth, global_min_depth)
             ax.margins(y=0)
-            
+
+            # keep same ticks as the original lith plot
             ax.set_yticks(y_ticks_graphic_log)
             ax.set_yticklabels(y_ticklabels_graphic_log)
 
-            # Copy lines
+            # copy lines
             for line in window.figure.axes[0].lines:
                 ax.plot(line.get_xdata(), line.get_ydata(), color=line.get_color())
-                
-            
-            # Copy patches 
+
+            # copy patches
             for patch in window.figure.axes[0].patches:
                 if isinstance(patch, patches.Rectangle):
-                    new_patch = patches.Rectangle((patch.get_x(), patch.get_y()), patch.get_width(), patch.get_height(), 
-                                                  facecolor=patch.get_facecolor(), edgecolor=patch.get_edgecolor(), 
-                                                  linewidth=patch.get_linewidth(), alpha=patch.get_alpha())
+                    new_patch = patches.Rectangle(
+                        (patch.get_x(), patch.get_y()),
+                        patch.get_width(),
+                        patch.get_height(),
+                        facecolor=patch.get_facecolor(),
+                        edgecolor=patch.get_edgecolor(),
+                        linewidth=patch.get_linewidth(),
+                        alpha=patch.get_alpha()
+                    )
                 elif isinstance(patch, patches.Polygon):
                     xy = patch.get_xy()
-                    new_patch = patches.Polygon(xy, closed=True, 
-                                                facecolor=patch.get_facecolor(), edgecolor=patch.get_edgecolor(),
-                                                linewidth=patch.get_linewidth(), alpha=patch.get_alpha())
+                    new_patch = patches.Polygon(
+                        xy,
+                        closed=True,
+                        facecolor=patch.get_facecolor(),
+                        edgecolor=patch.get_edgecolor(),
+                        linewidth=patch.get_linewidth(),
+                        alpha=patch.get_alpha()
+                    )
                 else:
-                    # If the patch type is not recognized, skip it.
                     continue
                 ax.add_patch(new_patch)
 
-
-            
-            # Copy texts over
+            # copy texts
             for text in window.figure.axes[0].texts:
-                ax.text(text.get_position()[0], text.get_position()[1], text.get_text(), fontsize=text.get_fontsize(), color=text.get_color())
+                ax.text(
+                    text.get_position()[0],
+                    text.get_position()[1],
+                    text.get_text(),
+                    fontsize=text.get_fontsize(),
+                    color=text.get_color()
+                )
 
-            # Copy annotations (e.g., depth annotations)
-            for annotation in window.figure.axes[0].texts:
-                new_annotation = ax.annotate(annotation.get_text(), 
-                                             annotation.get_position(),
-                                             color=annotation.get_color(),
-                                             fontsize=annotation.get_fontsize(),
-                                             ha=annotation.get_ha(),
-                                             va=annotation.get_va())
-
-            
-            # Match axis settings
+            # match x/y limits
             ax.set_xlim(window.figure.axes[0].get_xlim())
             ax.set_ylim(window.figure.axes[0].get_ylim())
             ax.set_xticks(window.figure.axes[0].get_xticks())
             ax.set_yticks(window.figure.axes[0].get_yticks())
-            ax.set_title(window.figure.axes[0].get_title())
-            ax.set_ylabel(window.figure.axes[0].get_ylabel())
 
-        
+            # titlesr
+            ax.set_title(window.figure.axes[0].get_title(), fontsize=8)
+
+            if i == 0:
+                ax.set_ylabel(window.figure.axes[0].get_ylabel())
+            else:
+                ax.set_ylabel("")  # remove label on other lith panels
+
+            
+            ax.grid(True, axis='y', linestyle=':', linewidth=0.5, alpha=0.5)
+
         for i, window in enumerate(self.geochem_plot_windows.values()):
             ax = self.axs[len(self.plot_windows) + i]
-            
+
             ax.set_ylim(global_max_depth, global_min_depth)
             ax.margins(y=0)
-            
-            # Remove the y-axis labels but keep the tick marks
+
+            # remove y tick labels
             ax.set_yticklabels([''] * len(ax.get_yticks()))
-            ax.set_title(window.column_name)
+
             
-            # Copy the content of the geochem plot window's axis to the new axis
-            for line in window.figure.axes[0].lines:
-                ax.plot(line.get_xdata(), line.get_ydata(), color=line.get_color())
-            
-            # Copy bars if present
-            for bar in window.figure.axes[0].patches:
+            ax.set_title(window.column_name, fontsize=8)
+
+            # copy content from the original geochem plot
+            src_ax = window.figure.axes[0]
+
+            if src_ax.lines:
+                for line in src_ax.lines:
+                    ax.plot(
+                        line.get_xdata(),
+                        line.get_ydata(),
+                        linestyle='-',
+                        marker='o',    
+                        markersize=1.5,
+                        linewidth=0.75,    
+                        color=line.get_color()
+                    )
+
+            # copy bars, if geochem was bar-style
+            for bar in src_ax.patches:
                 if isinstance(bar, patches.Rectangle):
-                    new_bar = patches.Rectangle((bar.get_x(), bar.get_y()), bar.get_width(), bar.get_height(), 
-                                                facecolor=bar.get_facecolor(), edgecolor=bar.get_edgecolor(), 
-                                                linewidth=bar.get_linewidth(), alpha=bar.get_alpha())
+                    new_bar = patches.Rectangle(
+                        (bar.get_x(), bar.get_y()),
+                        bar.get_width(),
+                        bar.get_height(),
+                        facecolor=bar.get_facecolor(),
+                        edgecolor=bar.get_edgecolor(),
+                        linewidth=bar.get_linewidth(),
+                        alpha=bar.get_alpha()
+                    )
                     ax.add_patch(new_bar)
 
-            # Ensure the x-axis limits match the original geochem plot
-            ax.set_xlim(window.figure.axes[0].get_xlim())
+            # keep x-limits the same as the source geochem
+            ax.set_xlim(src_ax.get_xlim())
 
+            # grid
+            ax.grid(True, which='both', linestyle=':', linewidth=0.6, alpha=0.6)
+
+        
         for ax in self.axs:
             ax.set_ylim(global_max_depth, global_min_depth)
             ax.invert_yaxis()
@@ -4402,8 +4458,8 @@ class CombinedPlotWindow(QtWidgets.QMainWindow):
         elif self.geochem_plot_windows:  # If no standard plot windows, check geochem plot windows
             parameters = next(iter(self.geochem_plot_windows.values())).parameters  # Use parameters from the first geochem plot window
         else:
-            # Handle the case where there are no windows to source parameters from
-            # This could be a message to the user or some default action
+            # Handle ?
+            
             return
 
         # Proceed to display the legend as before
@@ -4641,7 +4697,7 @@ class UnorientedPlot: # plot window for small circles/unoriented core structures
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
     def __init__(self):
         super().__init__()
-        self.setupUi(self)  # Set up the GUI -----  OpenGeoUI.py
+        self.setupUi(self)  # Set up the GUI
         # Get the directory where the Python script is located
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -4676,7 +4732,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow): # START MAIN WINDOW
         self.DEM_data = None
         self.selected_parameters = None
         self.combined_plot_window = None
-        self.selected_colormap = "Spectral_r"  # ✅ Default to a valid colormap name
+        self.selected_colormap = "Spectral_r"  # Default to a valid colormap name
 
         
         
